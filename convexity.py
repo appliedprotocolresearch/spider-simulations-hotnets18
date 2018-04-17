@@ -5,7 +5,7 @@ from scipy.optimize import minimize
 from autograd import elementwise_grad as egrad
 
 def reset_rate(x, y, c):
-	return ((1 - (y/x)**(c/2.0))*c/(1 - (y/x)**c) - (c/2.0))/(x - y)
+	return (x-y)/((1 - (y/x)**(c/2.0))*c/(1 - (y/x)**c) - (c/2.0))
 
 def determinant(x, y, c, dr2_dx2, dr2_dy2, dr2_dxdy):
         a = dr2_dx2(x, y, c)
