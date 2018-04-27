@@ -29,14 +29,16 @@ def main():
 
         # check if the random values violate convexity
         for x, y, c in zip(random_x, random_y, random_c):
+            #c = float(np.random.randint(max(x,y), 100))
             if (dr2_dx2(x, y, c) < 0):
                 print("second derivative wrt x negative x=", \
-                        x, " y = ",  y, "c = ", c)
+                        x, " y = ",  y, "c = ", c, "value is", dr2_dx2(x,y,c))
             if (dr2_dy2(x, y, c) < 0):
                 print("second derivative wrt y negative x=", \
-                        x, " y = ",  y, "c = ", c)
+                        x, " y = ",  y, "c = ", c, "value is", dr2_dy2(x,y,c))
             if (determinant(x, y, c, dr2_dx2, dr2_dy2, dr2_dxdy) < 0):
                 print("determinant is negative x=", \
-                        x, " y = ",  y, "c = ", c)
+                        x, " y = ",  y, "c = ", c, "value is", \
+                        determinant(x, y, c, dr2_dx2, dr2_dy2, dr2_dxdy))
 
 main()
