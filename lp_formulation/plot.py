@@ -12,7 +12,7 @@ plt.ylabel('Total throughput')
 
 if SRC_TYPE is 'skew':
 	plt.title('Skewed tx source (exp rate = ' + str(SKEW_RATE) + ')')
-elif SRC_TYPE is 'Uniform':
+elif SRC_TYPE is 'uniform':
 	plt.title('Uniform tx source')
 else:
 	print "Error! Source type invalid."
