@@ -1,6 +1,7 @@
 import copy
 import networkx as nx 
 import numpy as np 
+import parse
 
 from gurobipy import *
 from utils import *
@@ -172,9 +173,15 @@ def peel_path(commodity_graph, i, j):
 # 		return append_cycles(commodity_graph, index, path)
 
 def main():
-	n = 32
-	graph = nx.scale_free_graph(n)
-	graph = nx.Graph(graph)
+	# n = 32
+	# graph = nx.scale_free_graph(n)
+	# graph = nx.Graph(graph)
+
+	nodes, edges = parse.get_graph('../../speedy/data/visualizations/sample_topologies/BtNorthAmerica.gv')
+	graph = nx.Graph()
+	graph.add_nodes_from(nodes)
+	graph.add_edges_from(edges)
+	n = len(graph.nodes())
 
 	credit_mat = np.ones([n, n])*10
 	delay = .001
