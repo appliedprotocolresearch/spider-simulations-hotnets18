@@ -190,7 +190,7 @@ def main():
 
 	credit_mat = np.ones([n, n])*10
 	delay = .001
-	total_flow_skew_list = np.linspace(0, 2, 20)
+	total_flow_skew_list = [0.] # np.linspace(0, 2, 20)
 	throughput = np.zeros(len(total_flow_skew_list))
 
 	if SRC_TYPE is 'uniform':
@@ -198,14 +198,7 @@ def main():
 		demand_mat = np.ones([n, n]) 
 		np.fill_diagonal(demand_mat, 0.0)
 		demand_mat = demand_mat/np.sum(demand_mat)		
-		solver = global_optimal_flows(graph, demand_mat, credit_mat, delay)
-
-		for i, total_flow_skew in enumerate(total_flow_skew_list):
-			throughput[i] = solver.compute_lp_solution(total_flow_skew)	
-
-		np.save('./throughput.npy', throughput)	
-		np.save('./total_flow_skew.npy', total_flow_skew_list)
-
+		
 	elif SRC_TYPE is 'skew':
 		""" skewed load """
 		exp_rate = 0.5
@@ -214,17 +207,16 @@ def main():
 		demand_mat = exp_load * np.ones([1, n])
 		np.fill_diagonal(demand_mat, 0.0)
 		demand_mat = demand_mat/np.sum(demand_mat)
-		solver = global_optimal_flows(graph, demand_mat, credit_mat, delay)
-
-		for i, total_flow_skew in enumerate(total_flow_skew_list):
-			throughput[i] = solver.compute_lp_solution(total_flow_skew)	
-
-		np.save('./throughput.npy', throughput)	
-		np.save('./total_flow_skew.npy', total_flow_skew_list)
 
 	else:
 		print "Error! Source type invalid."
 
+	solver = global_optimal_flows(graph, demand_mat, credit_mat, delay)
+	for i, total_flow_skew in enumerate(total_flow_skew_list):
+		throughput[i] = solver.compute_lp_solution(total_flow_skew)	
+
+	np.save('./throughput.npy', throughput)	
+	np.save('./total_flow_skew.npy', total_flow_skew_list)
 
 if __name__=='__main__':
 	main()
