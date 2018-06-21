@@ -32,12 +32,3 @@ def get_graph(filename):
     adj_dict = parse_graph_data(filename)
     nodes, edges = convert_adj_dict_to_list(adj_dict)    
     return nodes, edges
-
-def main():
-    adj_dict = parse_graph_data('../../speedy/data/visualizations/sample_topologies/BtNorthAmerica.gv')
-    nodes, edges = convert_adj_dict_to_list(adj_dict)
-    print nodes
-    print edges
-
-if __name__=='__main__':
-    main()
