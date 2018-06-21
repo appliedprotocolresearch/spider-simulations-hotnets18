@@ -202,7 +202,8 @@ def main():
 	# np.save('./total_flow_skew.npy', total_flow_skew_list)
 
 	""" skewed load """
-	exp_load = np.exp(np.arange(0, -n, -1) * 0.5)
+	exp_rate = 0.5
+	exp_load = np.exp(np.arange(0, -n, -1) * exp_rate)
 	exp_load = exp_load.reshape([n, 1])
 	demand_mat = exp_load * np.ones([1, n])
 	np.fill_diagonal(demand_mat, 0.0)
