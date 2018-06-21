@@ -173,49 +173,57 @@ def peel_path(commodity_graph, i, j):
 # 		return append_cycles(commodity_graph, index, path)
 
 def main():
-	# n = 32
-	# graph = nx.scale_free_graph(n)
-	# graph = nx.Graph(graph)
+	if GRAPH_TYPE is 'scale_free':
+		n = GRAPH_SIZE
+		graph = nx.scale_free_graph(n)
+		graph = nx.Graph(graph)
 
-	nodes, edges = parse.get_graph('../../speedy/data/visualizations/sample_topologies/BtNorthAmerica.gv')
-	graph = nx.Graph()
-	graph.add_nodes_from(nodes)
-	graph.add_edges_from(edges)
-	n = len(graph.nodes())
+	elif GRAPH_TYPE is 'isp':
+		nodes, edges = parse.get_graph('../../speedy/data/visualizations/sample_topologies/BtNorthAmerica.gv')
+		graph = nx.Graph()
+		graph.add_nodes_from(nodes)
+		graph.add_edges_from(edges)
+		n = len(graph.nodes())
+
+	else:
+		print "Error! Graph type invalid."
 
 	credit_mat = np.ones([n, n])*10
 	delay = .001
 	total_flow_skew_list = np.linspace(0, 2, 20)
 	throughput = np.zeros(len(total_flow_skew_list))
 
-	""" uniform load """
-	# demand_mat = np.ones([n, n]) 
-	# np.fill_diagonal(demand_mat, 0.0)
-	# demand_mat = demand_mat/np.sum(demand_mat)
-	
-	# solver = global_optimal_flows(graph, demand_mat, credit_mat, delay)
+	if SRC_TYPE is 'uniform':
+		""" uniform load """
+		demand_mat = np.ones([n, n]) 
+		np.fill_diagonal(demand_mat, 0.0)
+		demand_mat = demand_mat/np.sum(demand_mat)		
+		solver = global_optimal_flows(graph, demand_mat, credit_mat, delay)
 
-	# for i, total_flow_skew in enumerate(total_flow_skew_list):
-	# 	throughput[i] = solver.compute_lp_solution(total_flow_skew)	
+		for i, total_flow_skew in enumerate(total_flow_skew_list):
+			throughput[i] = solver.compute_lp_solution(total_flow_skew)	
 
-	# np.save('./throughput.npy', throughput)	
-	# np.save('./total_flow_skew.npy', total_flow_skew_list)
+		np.save('./throughput.npy', throughput)	
+		np.save('./total_flow_skew.npy', total_flow_skew_list)
 
-	""" skewed load """
-	exp_rate = 0.5
-	exp_load = np.exp(np.arange(0, -n, -1) * exp_rate)
-	exp_load = exp_load.reshape([n, 1])
-	demand_mat = exp_load * np.ones([1, n])
-	np.fill_diagonal(demand_mat, 0.0)
-	demand_mat = demand_mat/np.sum(demand_mat)
+	elif SRC_TYPE is 'skew':
+		""" skewed load """
+		exp_rate = 0.5
+		exp_load = np.exp(np.arange(0, -n, -1) * exp_rate)
+		exp_load = exp_load.reshape([n, 1])
+		demand_mat = exp_load * np.ones([1, n])
+		np.fill_diagonal(demand_mat, 0.0)
+		demand_mat = demand_mat/np.sum(demand_mat)
+		solver = global_optimal_flows(graph, demand_mat, credit_mat, delay)
 
-	solver = global_optimal_flows(graph, demand_mat, credit_mat, delay)
+		for i, total_flow_skew in enumerate(total_flow_skew_list):
+			throughput[i] = solver.compute_lp_solution(total_flow_skew)	
 
-	for i, total_flow_skew in enumerate(total_flow_skew_list):
-		throughput[i] = solver.compute_lp_solution(total_flow_skew)	
+		np.save('./throughput.npy', throughput)	
+		np.save('./total_flow_skew.npy', total_flow_skew_list)
 
-	np.save('./throughput.npy', throughput)	
-	np.save('./total_flow_skew.npy', total_flow_skew_list)
+	else:
+		print "Error! Source type invalid."
 
 
 if __name__=='__main__':
