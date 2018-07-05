@@ -20,8 +20,7 @@ class payment_network(object):
 		assert np.shape(demand_mat)[0] == np.shape(demand_mat)[1]
 		assert len(graph.nodes()) = np.shape(demand_mat)[0]
 
-		""" initialize flows and prices on links """
-		self.link_flows = {}
+		""" initialize prices on links """
 		self.link_prices_l = {}
 		self.link_prices_y = {}
 		self.link_prices_z = {}
@@ -30,21 +29,26 @@ class payment_network(object):
 			self.link_prices_l[i, j] = 1.
 
 		for e in self.graph.edges():
-			self.link_flows[e[0], e[1]] = 0.
-			self.link_flows[e[1], e[0]] = 0.
 			self.link_prices_y[e[0], e[1]] = 1.
 			self.link_prices_y[e[0], e[1]] = 1.
 			self.link_prices_z[e[0], e[1]] = 1.
 			self.link_prices_z[e[0], e[1]] = 1.			
 
-		""" initalize path flows for each source/destination pair """
+		""" initalize flows on paths """
+		self.total_srcdest_flow = {}
+		self.link_flows = {}
 		self.path_flows = {}
 		self.paths = self.preselect_paths(max_num_paths)
 
 		for i, j in self.nonzero_demands:
+			self.total_srcdest_flow[i, j] = 0.
 			self.path_flows[i, j] = {}
 			for path in self.paths[i, j]:
 				self.path_flows[i, j][path] = 0.
+
+		for e in self.graph.edges():
+			self.link_flows[e[0], e[1]] = 0.
+			self.link_flows[e[1], e[0]] = 0.
 
 	def preselect_paths(self, max_num_paths):
 		""" compute and store (at most) max_num_paths shortest paths for each source, 
@@ -66,7 +70,7 @@ class payment_network(object):
 		return total_price
 
 	def update_flows(self):
-		""" depending on link prices update flow variables """
+		""" update flow variables depending on link prices """
 		for i, j in self.nonzero_demands:
 			for path in self.paths[i, j]:
 				price = self.compute_path_price(path)
@@ -74,25 +78,80 @@ class payment_network(object):
 				self.path_flows[i, j][path] += STEP_SIZE * (1. - price) # TODO: change precise update rule later
 				self.path_flows[i, j][path] = np.max([0., self.path_flows[i, j][path]])
 
+				""" update total flow between i and j """
+				self.total_srcdest_flow[i, j] -= temp_flow
+				self.total_srcdest_flow[i, j] += self.path_flows[i, j][path]
+
 				""" update link flow states """
 				for u, v in zip(path[:-1], path[1:]):
 					self.link_flows[u, v] -= temp_flow
 					self.link_flows[u, v] += self.path_flows[i, j][path]
+
 		# TODO: if max_num_paths is infinity, then update flow variables only on one shortest and longest path
 
-	def update_price(self):
-		depending on link utilization update price variables on all links 
-		update graph state
+	def update_prices(self):
+		""" update price variables depending on link utilization """
+		for i, j in self.nonzero_demands:
+			self.link_prices_l[i, j] -= STEP_SIZE * (self.demand_mat[i, j] - self.total_srcdest_flow[i, j])
+			self.link_prices_l[i, j] = np.max([0., self.link_prices_l[i, j]])
+
+		for e in self.graph.edges():
+			self.link_prices_y[e[0], e[1]] -= STEP_SIZE * (self.capacity_mat[e[0], e[1]] - self.link_flows[e[0], e[1]])
+			self.link_prices_y[e[0], e[1]] = np.max([0., self.link_prices_y[e[0], e[1]]])
+			self.link_prices_y[e[1], e[0]] -= STEP_SIZE * (self.capacity_mat[e[1], e[0]] - self.link_flows[e[0], e[1]])
+			self.link_prices_y[e[1], e[0]] = np.max([0., self.link_prices_y[e[1], e[0]]])
+			self.link_prices_z[e[0], e[1]] -= STEP_SIZE * (self.link_flows[e[1], e[0]] - self.link_flows[e[0], e[1]])
+			self.link_prices_z[e[0], e[1]] = np.max([0., self.link_prices_z[e[0], e[1]]])
+			self.link_prices_z[e[1], e[0]] -= STEP_SIZE * (self.link_flows[e[0], e[1]] - self.link_flows[e[1], e[0]])
+			self.link_prices_z[e[1], e[0]] = np.max([0., self.link_prices_z[e[1], e[0]]])
+
+	def print_flows(self):
+		""" print current state of flows """
+		for i, j in self.nonzero_demands:
+			print "src: ", i, "dest: ", j
+			for path in self.paths[i, j]:
+				print "path: ", path, "flow: ", self.path_flows[i, j][path]
+			print " "
+
+	def print_prices(self):
+		""" print current state of prices """
+		for i, j in self.nonzero_demands:
+			print "l value for src: ", i, "dest: ", j, " is ", self.link_prices_l[i, j]
+		print " "
+
+		for e in self.graph.edges():
+			print "y value for edge: ", e[0], e[1], " is ", self.link_prices_y[e[0], e[1]]
+			print "y value for edge: ", e[1], e[0], " is ", self.link_prices_y[e[1], e[0]]
+		print " "
+
+		for e in self.graph.edges():
+			print "z value for edge: ", e[0], e[1], " is ", self.link_prices_z[e[0], e[1]]
+			print "z value for edge: ", e[1], e[0], " is ", self.link_prices_z[e[1], e[0]]
+		print " "
 
 def main():
-	load ISP graph 
-	initialize payment_network
+	# load ISP graph 
+	# initialize payment_network
 
-	for a number of iterations do 
-		update_flows
-		update_price
+	graph = nx.Graph()
+	graph.add_nodes_from([0, 1, 2, 3, 4])
+	graph.add_edges_from([(0, 1), (1, 2), (2, 3), (3, 4)])
 
-	print final answer
+	demand_mat = np.ones([5, 5]) / 25.
+	np.fill_diagonal(demand_mat, 0.0)
+
+	credit_mat = np.ones([5, 5])*10
+	delay = .001
+
+	max_num_paths = 1
+
+	network = payment_network(graph, demand_mat, credit_mat, delay, max_num_paths)
+
+	for step in range(NUM_ITERATIONS):
+		network.update_flows()
+		network.print_flows()
+		network.update_prices()
+		network.print_prices()
 
 if __name__=='__main__':
 	main()
