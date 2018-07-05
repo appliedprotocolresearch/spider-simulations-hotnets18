@@ -1,9 +1,12 @@
 """ algorithm to compute k shortest paths from given source to destination
 in a graph using Yen's algorithm: https://en.wikipedia.org/wiki/Yen%27s_algorithm """
 
+import copy 
 import networkx as nx 
 
 def ksp_yen(graph, node_start, node_end, max_k=2):
+
+    graph = copy.deepcopy(graph)
 
     A = []
     B = []
@@ -64,7 +67,7 @@ def ksp_yen(graph, node_start, node_end, max_k=2):
     return A
 
 def main():
-    
+
     graph = nx.fast_gnp_random_graph(30, 0.5)
     print graph.edges()
     print ksp_yen(graph, 0, 1, 3)
