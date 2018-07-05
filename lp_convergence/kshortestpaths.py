@@ -26,8 +26,10 @@ def ksp_yen(graph, node_start, node_end, max_k=2):
             for path_k in A:
                 curr_path = path_k
                 if len(curr_path) > i and path_root == curr_path[:i+1]:
-                    graph.remove_edge(curr_path[i], curr_path[i+1])
-                    edges_removed.append([curr_path[i], curr_path[i+1]])
+                    if (curr_path[i], curr_path[i+1]) in graph.edges() or \
+                        (curr_path[i+1], curr_path[i]) in graph.edges():
+                        graph.remove_edge(curr_path[i], curr_path[i+1])
+                        edges_removed.append([curr_path[i], curr_path[i+1]])
             
             nodes_removed = []
             for rootpathnode in path_root:
@@ -38,7 +40,7 @@ def ksp_yen(graph, node_start, node_end, max_k=2):
             try:
                 path_spur = nx.shortest_path(graph, source=node_spur, target=node_end)
             except:
-                print "Error in path_spur computation!"
+                path_spur = None
             
             if path_spur:
                 path_total = path_root[:-1] + path_spur            
@@ -62,11 +64,10 @@ def ksp_yen(graph, node_start, node_end, max_k=2):
     return A
 
 def main():
-    graph = nx.Graph()
-    graph.add_nodes_from(range(4))
-    graph.add_edges_from([(0, 1), (1, 2), (0, 2), (2, 3)])
-
-    print ksp_yen(graph, 0, 1)
+    
+    graph = nx.fast_gnp_random_graph(30, 0.5)
+    print graph.edges()
+    print ksp_yen(graph, 0, 1, 3)
 
 if __name__=='__main__':
     main()
