@@ -12,4 +12,5 @@ iterations[0, :] = range(np.shape(primal_values)[1])
 plt.plot(iterations[0, :], primal_values[0, :])
 plt.plot(iterations[0, :], dual_values[0, :])
 
-plt.show()
+# plt.show()
+plt.savefig('plot.png')

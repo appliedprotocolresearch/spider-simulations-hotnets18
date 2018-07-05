@@ -75,7 +75,7 @@ class payment_network(object):
 			for idx, path in enumerate(self.paths[i, j]):
 				price = self.compute_path_price(path)
 				temp_flow = self.path_flows[i, j][idx]
-				self.path_flows[i, j][idx] += STEP_SIZE * (1. - price) # TODO: change precise update rule later
+				self.path_flows[i, j][idx] += STEP_SIZE * (1. - price) / (np.abs(1. - price) ** 2) # TODO: change precise update rule later
 				self.path_flows[i, j][idx] = np.max([0., self.path_flows[i, j][idx]])
 
 				""" update total flow between i and j """
@@ -92,17 +92,22 @@ class payment_network(object):
 	def update_prices(self):
 		""" update price variables depending on link utilization """
 		for i, j in self.nonzero_demands:
-			self.link_prices_l[i, j] -= STEP_SIZE * (self.demand_mat[i, j] - self.total_srcdest_flow[i, j])
+			self.link_prices_l[i, j] -= STEP_SIZE * (self.demand_mat[i, j] - self.total_srcdest_flow[i, j]) \
+										 / (np.abs(self.demand_mat[i, j] - self.total_srcdest_flow[i, j]) ** 2)
 			self.link_prices_l[i, j] = np.max([0., self.link_prices_l[i, j]])
 
 		for e in self.graph.edges():
-			self.link_prices_y[e[0], e[1]] -= STEP_SIZE * (self.capacity_mat[e[0], e[1]] - self.link_flows[e[0], e[1]])
+			self.link_prices_y[e[0], e[1]] -= STEP_SIZE * (self.capacity_mat[e[0], e[1]] - self.link_flows[e[0], e[1]]) \
+											/ (np.abs(self.capacity_mat[e[0], e[1]] - self.link_flows[e[0], e[1]]) ** 2)
 			self.link_prices_y[e[0], e[1]] = np.max([0., self.link_prices_y[e[0], e[1]]])
-			self.link_prices_y[e[1], e[0]] -= STEP_SIZE * (self.capacity_mat[e[1], e[0]] - self.link_flows[e[0], e[1]])
+			self.link_prices_y[e[1], e[0]] -= STEP_SIZE * (self.capacity_mat[e[1], e[0]] - self.link_flows[e[0], e[1]]) \
+											/ (np.abs(self.capacity_mat[e[1], e[0]] - self.link_flows[e[0], e[1]]) ** 2)
 			self.link_prices_y[e[1], e[0]] = np.max([0., self.link_prices_y[e[1], e[0]]])
-			self.link_prices_z[e[0], e[1]] -= STEP_SIZE * (self.link_flows[e[1], e[0]] - self.link_flows[e[0], e[1]])
+			self.link_prices_z[e[0], e[1]] -= STEP_SIZE * (self.link_flows[e[1], e[0]] - self.link_flows[e[0], e[1]]) \
+											/ (np.abs(self.link_flows[e[1], e[0]] - self.link_flows[e[0], e[1]]) ** 2)
 			self.link_prices_z[e[0], e[1]] = np.max([0., self.link_prices_z[e[0], e[1]]])
-			self.link_prices_z[e[1], e[0]] -= STEP_SIZE * (self.link_flows[e[0], e[1]] - self.link_flows[e[1], e[0]])
+			self.link_prices_z[e[1], e[0]] -= STEP_SIZE * (self.link_flows[e[0], e[1]] - self.link_flows[e[1], e[0]]) \
+											/ (np.abs(self.link_flows[e[0], e[1]] - self.link_flows[e[1], e[0]]) ** 2)
 			self.link_prices_z[e[1], e[0]] = np.max([0., self.link_prices_z[e[1], e[0]]])
 
 	def print_flows(self):
