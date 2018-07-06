@@ -92,23 +92,52 @@ class payment_network(object):
 	def update_prices(self):
 		""" update price variables depending on link utilization """
 		for i, j in self.nonzero_demands:
-			self.link_prices_l[i, j] -= STEP_SIZE * (self.demand_mat[i, j] - self.total_srcdest_flow[i, j]) \
-										 / (np.abs(self.demand_mat[i, j] - self.total_srcdest_flow[i, j]) ** 2 + 0.01)
-			self.link_prices_l[i, j] = np.max([0., self.link_prices_l[i, j]])
+			# self.link_prices_l[i, j] -= STEP_SIZE * (self.demand_mat[i, j] - self.total_srcdest_flow[i, j]) \
+			# 							 / (np.abs(self.demand_mat[i, j] - self.total_srcdest_flow[i, j]) ** 2 + 0.01)
+			# self.link_prices_l[i, j] = np.max([0., self.link_prices_l[i, j]])
+
+			if (self.demand_mat[i, j] - self.total_srcdest_flow[i, j]) > 0:
+				self.link_prices_l[i, j] = 0.
+			else:
+				self.link_prices_l[i, j] = 1000.
 
 		for e in self.graph.edges():
-			self.link_prices_y[e[0], e[1]] -= STEP_SIZE * (self.capacity_mat[e[0], e[1]] - self.link_flows[e[0], e[1]]) \
-											/ (np.abs(self.capacity_mat[e[0], e[1]] - self.link_flows[e[0], e[1]]) ** 2 + 0.01)
-			self.link_prices_y[e[0], e[1]] = np.max([0., self.link_prices_y[e[0], e[1]]])
-			self.link_prices_y[e[1], e[0]] -= STEP_SIZE * (self.capacity_mat[e[1], e[0]] - self.link_flows[e[0], e[1]]) \
-											/ (np.abs(self.capacity_mat[e[1], e[0]] - self.link_flows[e[0], e[1]]) ** 2 + 0.01)
-			self.link_prices_y[e[1], e[0]] = np.max([0., self.link_prices_y[e[1], e[0]]])
-			self.link_prices_z[e[0], e[1]] -= STEP_SIZE * (self.link_flows[e[1], e[0]] - self.link_flows[e[0], e[1]]) \
-											/ (np.abs(self.link_flows[e[1], e[0]] - self.link_flows[e[0], e[1]]) ** 2 + 0.01)
-			self.link_prices_z[e[0], e[1]] = np.max([0., self.link_prices_z[e[0], e[1]]])
-			self.link_prices_z[e[1], e[0]] -= STEP_SIZE * (self.link_flows[e[0], e[1]] - self.link_flows[e[1], e[0]]) \
-											/ (np.abs(self.link_flows[e[0], e[1]] - self.link_flows[e[1], e[0]]) ** 2 + 0.01)
-			self.link_prices_z[e[1], e[0]] = np.max([0., self.link_prices_z[e[1], e[0]]])
+			# self.link_prices_y[e[0], e[1]] -= STEP_SIZE * (self.capacity_mat[e[0], e[1]] - self.link_flows[e[0], e[1]]) \
+			# 								/ (np.abs(self.capacity_mat[e[0], e[1]] - self.link_flows[e[0], e[1]]) ** 2 + 0.01)
+			# self.link_prices_y[e[0], e[1]] = np.max([0., self.link_prices_y[e[0], e[1]]])
+
+			# self.link_prices_y[e[1], e[0]] -= STEP_SIZE * (self.capacity_mat[e[1], e[0]] - self.link_flows[e[1], e[0]]) \
+			# 								/ (np.abs(self.capacity_mat[e[1], e[0]] - self.link_flows[e[1], e[0]]) ** 2 + 0.01)
+			# self.link_prices_y[e[1], e[0]] = np.max([0., self.link_prices_y[e[1], e[0]]])
+
+			# self.link_prices_z[e[0], e[1]] -= STEP_SIZE * (self.link_flows[e[1], e[0]] - self.link_flows[e[0], e[1]]) \
+			# 								/ (np.abs(self.link_flows[e[1], e[0]] - self.link_flows[e[0], e[1]]) ** 2 + 0.01)
+			# self.link_prices_z[e[0], e[1]] = np.max([0., self.link_prices_z[e[0], e[1]]])
+
+			# self.link_prices_z[e[1], e[0]] -= STEP_SIZE * (self.link_flows[e[0], e[1]] - self.link_flows[e[1], e[0]]) \
+			# 								/ (np.abs(self.link_flows[e[0], e[1]] - self.link_flows[e[1], e[0]]) ** 2 + 0.01)
+			# self.link_prices_z[e[1], e[0]] = np.max([0., self.link_prices_z[e[1], e[0]]])
+
+			if (self.capacity_mat[e[0], e[1]] - self.link_flows[e[0], e[1]]) > 0:
+				self.link_prices_y[e[0], e[1]] = 0.
+			else:
+				self.link_prices_y[e[0], e[1]] = 1000.
+			
+			if (self.capacity_mat[e[1], e[0]] - self.link_flows[e[1], e[0]]) > 0:
+				self.link_prices_y[e[1], e[0]] = 0.
+			else:
+				self.link_prices_y[e[1], e[0]] = 1000.
+
+			if (self.link_flows[e[1], e[0]] - self.link_flows[e[0], e[1]]) > 0:
+				self.link_prices_z[e[0], e[1]] = 0.
+			else:
+				self.link_prices_z[e[0], e[1]] = 1000.
+
+			if (self.link_flows[e[0], e[1]] - self.link_flows[e[1], e[0]]) > 0:
+				self.link_prices_z[e[1], e[0]] = 0.
+			else:
+				self.link_prices_z[e[1], e[0]] = 1000.
+
 
 	def print_flows(self):
 		""" print current state of flows """
@@ -155,6 +184,28 @@ class payment_network(object):
 
 		return total_price
 
+	def print_complementary_slackness_error(self):
+		""" error in CS conditions """
+		err_l = 0.
+		for i, j in self.nonzero_demands:
+			err_l += np.abs(self.link_prices_l[i, j] * (self.demand_mat[i, j] - self.total_srcdest_flow[i, j]))
+
+		err_y = 0.
+		err_z = 0.
+		for e in self.graph.edges():
+			err_y += np.abs(self.link_prices_y[e[0], e[1]] * (self.capacity_mat[e[0], e[1]] - self.link_flows[e[0], e[1]]))
+			err_y += np.abs(self.link_prices_y[e[1], e[0]] * (self.capacity_mat[e[1], e[0]] - self.link_flows[e[1], e[0]]))
+			err_z += np.abs(self.link_prices_z[e[0], e[1]] * (self.link_flows[e[1], e[0]] - self.link_flows[e[0], e[1]]))
+			err_z += np.abs(self.link_prices_z[e[1], e[0]] * (self.link_flows[e[0], e[1]] - self.link_flows[e[1], e[0]]))
+
+		err_x = 0.
+		for i, j in self.nonzero_demands:
+			for idx, path in enumerate(self.paths[i, j]):
+				price = self.compute_path_price(path)
+				err_x += np.abs(self.path_flows[i, j][idx] * (1. - price))
+
+		return err_l, err_y, err_z, err_x
+
 def main():
 	# load ISP graph 
 	# initialize payment_network
@@ -175,18 +226,31 @@ def main():
 
 	primal_values = np.zeros([1, NUM_ITERATIONS])
 	dual_values = np.zeros([1, NUM_ITERATIONS])
+	cs_err_l = np.zeros([1, NUM_ITERATIONS])
+	cs_err_y = np.zeros([1, NUM_ITERATIONS])
+	cs_err_z = np.zeros([1, NUM_ITERATIONS])
+	cs_err_x = np.zeros([1, NUM_ITERATIONS])
 
 	for step in range(NUM_ITERATIONS):
 		network.update_flows()
 		primal_values[0, step] = network.print_primal_value()
 		network.update_prices()
 		dual_values[0, step] = network.print_dual_value()
+		err_l, err_y, err_z, err_x = network.print_complementary_slackness_error()
+		cs_err_l[0, step] = err_l
+		cs_err_y[0, step] = err_y
+		cs_err_z[0, step] = err_z
+		cs_err_x[0, step] = err_x
 
 	print primal_values
 	print dual_values
 
 	np.save('./primal_values.npy', primal_values)	
 	np.save('./dual_values.npy', dual_values)	
+	np.save('./cs_err_l.npy', cs_err_l)
+	np.save('./cs_err_y.npy', cs_err_y)
+	np.save('./cs_err_z.npy', cs_err_z)
+	np.save('./cs_err_x.npy', cs_err_x)
 
 if __name__=='__main__':
 	main()
