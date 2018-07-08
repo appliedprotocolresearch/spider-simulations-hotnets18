@@ -11,4 +11,4 @@ GRAPH_TYPE = 'isp'
 SRC_TYPE = 'uniform'
 
 """ skew rate: real number > 0 """
-SKEW_RATE = 0.5
+SKEW_RATE = 0.25

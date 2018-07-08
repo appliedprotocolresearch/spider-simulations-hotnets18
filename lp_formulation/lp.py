@@ -2,6 +2,8 @@ import copy
 import networkx as nx 
 import numpy as np 
 import parse
+import pickle
+import sys, os
 
 from gurobipy import *
 from utils import *
@@ -138,6 +140,18 @@ class global_optimal_flows(object):
 
 		return lp_paths
 
+        def print_paths_from_lp_solution(self, op_filename):
+            """ compute and output paths in json format"""
+            lp_paths = self.compute_paths_from_lp_solution()
+            filename = "optimal_paths_" + op_filename 
+            with open(filename, 'w') as f:
+                for key, value in lp_paths.items():
+                    f.write(str(key) + "\n")
+                    for v in value:
+                        f.write(str(v['path']) +  " " + str(v['weight']) + "\n")
+                    f.write("\n")
+            f.close()
+
 def peel_path(commodity_graph, i, j):
 	path = nx.dijkstra_path(commodity_graph, i, j)
 	# path = append_cycles(commodity_graph, 0, path)
@@ -172,7 +186,29 @@ def peel_path(commodity_graph, i, j):
 # 		index += 1
 # 		return append_cycles(commodity_graph, index, path)
 
+def read_demand_from_file(demand_file, num_nodes):
+    demand_mat = np.zeros([num_nodes, num_nodes])
+    with open(demand_file) as f:
+        for line in f:
+            parts = line.split(" ")
+            src = int(parts[2])
+            dst = int(parts[3])
+            val = float(parts[1])
+            demand_mat[src, dst] += val
+    print demand_mat
+    return demand_mat
+
 def main():
+        """ demand read from transaction file """
+        demand_file = None
+        op_filename = None
+        if (len(sys.argv) == 2):
+                demand_file = sys.argv[1]
+                base = os.path.basename(demand_file)
+                op_filename = os.path.splitext(base)[0]
+                print op_filename
+
+
 	if GRAPH_TYPE is 'scale_free':
 		n = GRAPH_SIZE
 		graph = nx.scale_free_graph(n)
@@ -193,7 +229,12 @@ def main():
 	total_flow_skew_list = [0.] # np.linspace(0, 2, 20)
 	throughput = np.zeros(len(total_flow_skew_list))
 
-	if SRC_TYPE is 'uniform':
+
+        if demand_file is not None:
+                demand_mat = read_demand_from_file(demand_file, n)
+                demand_mat = demand_mat/np.sum(demand_mat)
+
+        elif SRC_TYPE is 'uniform':
 		""" uniform load """
 		demand_mat = np.ones([n, n]) 
 		np.fill_diagonal(demand_mat, 0.0)
@@ -206,16 +247,20 @@ def main():
 		demand_mat = exp_load * np.ones([1, n])
 		np.fill_diagonal(demand_mat, 0.0)
 		demand_mat = demand_mat/np.sum(demand_mat)
-
 	else:
 		print "Error! Source type invalid."
 
 	solver = global_optimal_flows(graph, demand_mat, credit_mat, delay)
-	for i, total_flow_skew in enumerate(total_flow_skew_list):
-		throughput[i] = solver.compute_lp_solution(total_flow_skew)	
 
-	np.save('./throughput.npy', throughput)	
-	np.save('./total_flow_skew.npy', total_flow_skew_list)
+
+        for i, total_flow_skew in enumerate(total_flow_skew_list):
+                throughput[i] = solver.compute_lp_solution(total_flow_skew)
+
+        np.save('./throughput.npy', throughput)	
+        np.save('./total_flow_skew.npy', total_flow_skew_list)
+
+        if op_filename is not None:
+                solver.print_paths_from_lp_solution(op_filename)
 
 if __name__=='__main__':
 	main()
