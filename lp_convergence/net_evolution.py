@@ -91,7 +91,7 @@ class payment_network(object):
 
 				if price > 1.:
 					self.path_flows[i, j][idx] = 0.					
-				# elif price < 1. - 0.01:
+				# elif price < 1. - 0.1:
 					# self.path_flows[i, j][idx] = self.demand_mat[i, j]
 				else:
 					slack = self.compute_path_slackness(path)
@@ -168,7 +168,7 @@ class payment_network(object):
 				print "path: ", path, "flow: ", self.path_flows[i, j][idx]
 			print " "
 
-	def print_prices(self):
+	def print_link_prices(self):
 		""" print current state of prices """
 		for i, j in self.nonzero_demands:
 			print "l value for src: ", i, "dest: ", j, " is ", self.link_prices_l[i, j]
@@ -183,6 +183,18 @@ class payment_network(object):
 			print "z value for edge: ", e[0], e[1], " is ", self.link_prices_z[e[0], e[1]]
 			print "z value for edge: ", e[1], e[0], " is ", self.link_prices_z[e[1], e[0]]
 		print " "
+
+	def print_path_prices(self):
+		""" print total price along all paths """
+		for i, j in self.nonzero_demands:
+			print "src: ", i, "dest: ", j
+			for idx, path in enumerate(self.paths[i, j]):
+				total_price = self.link_prices_l[i, j]
+				for u, v in zip(path[:-1], path[1:]):
+					total_price += self.link_prices_y[u, v]
+					total_price += self.link_prices_z[u, v]
+					total_price -= self.link_prices_z[v, u]
+				print "path: ", path, "price: ", total_price
 
 	def print_primal_value(self):
 		""" total flow sent in current state """
@@ -246,7 +258,7 @@ def main():
 
 	credit_mat = np.ones([3, 3])
 	credit_mat = adj_mat.multiply(credit_mat).todense()
-	delay = 6.
+	delay = 1 # 6.
 
 	max_num_paths = 1
 
@@ -273,8 +285,9 @@ def main():
 	print primal_values
 	print dual_values
 
-	network.print_prices()
+	network.print_link_prices()
 	network.print_flows()
+	network.print_path_prices()
 
 	np.save('./primal_values.npy', primal_values)	
 	np.save('./dual_values.npy', dual_values)	
