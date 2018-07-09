@@ -69,14 +69,35 @@ class payment_network(object):
 			total_price -= self.link_prices_z[v, u]
 		return total_price
 
+	def compute_path_slackness(self, path):
+		""" return total slackness along path """
+		i = path[0]
+		j = path[-1]
+		total_slack = (self.demand_mat[i, j] - self.total_srcdest_flow[i, j])*self.link_prices_l[i, j]
+		for u, v in zip(path[:-1], path[1:]):
+			total_slack += (self.capacity_mat[u, v] - self.link_flows[u, v])*self.link_prices_y[u, v]
+			total_slack += (self.link_flows[v, u] - self.link_flows[u, v])*self.link_prices_z[u, v]
+		return total_slack
+
 	def update_flows(self):
 		""" update flow variables depending on link prices """
 		for i, j in self.nonzero_demands:
 			for idx, path in enumerate(self.paths[i, j]):
 				price = self.compute_path_price(path)
 				temp_flow = self.path_flows[i, j][idx]
-				self.path_flows[i, j][idx] += STEP_SIZE * (1. - price) / (np.abs(1. - price) ** 2 + 0.01) # TODO: change precise update rule later
-				self.path_flows[i, j][idx] = np.max([0., self.path_flows[i, j][idx]])
+				# TODO: change precise update rule later
+				# self.path_flows[i, j][idx] += STEP_SIZE * (1. - price) / (np.abs(1. - price) ** 2 + 0.01) 
+				# self.path_flows[i, j][idx] = np.max([0., self.path_flows[i, j][idx]])
+
+				if price > 1.:
+					self.path_flows[i, j][idx] = 0.					
+				# elif price < 1. - 0.01:
+					# self.path_flows[i, j][idx] = self.demand_mat[i, j]
+				else:
+					slack = self.compute_path_slackness(path)
+					self.path_flows[i, j][idx] += STEP_SIZE * slack
+					self.path_flows[i, j][idx] = np.max([0., self.path_flows[i, j][idx]])					
+					self.path_flows[i, j][idx] = np.min([self.demand_mat[i, j], self.path_flows[i, j][idx]])
 
 				""" update total flow between i and j """
 				self.total_srcdest_flow[i, j] -= temp_flow
@@ -92,8 +113,8 @@ class payment_network(object):
 	def update_prices(self):
 		""" update price variables depending on link utilization """
 		for i, j in self.nonzero_demands:
-			self.link_prices_l[i, j] -= STEP_SIZE * (self.demand_mat[i, j] - self.total_srcdest_flow[i, j]) \
-										 / (np.abs(self.demand_mat[i, j] - self.total_srcdest_flow[i, j]) ** 2 + 0.01)
+			self.link_prices_l[i, j] -= STEP_SIZE * (self.demand_mat[i, j] - self.total_srcdest_flow[i, j]) #\
+										 # / (np.abs(self.demand_mat[i, j] - self.total_srcdest_flow[i, j]) ** 2 + 0.01)
 			self.link_prices_l[i, j] = np.max([0., self.link_prices_l[i, j]])
 
 			# if (self.demand_mat[i, j] - self.total_srcdest_flow[i, j]) > 0:
@@ -102,20 +123,20 @@ class payment_network(object):
 			# 	self.link_prices_l[i, j] = 1000.
 
 		for e in self.graph.edges():
-			self.link_prices_y[e[0], e[1]] -= STEP_SIZE * (self.capacity_mat[e[0], e[1]] - self.link_flows[e[0], e[1]]) \
-											/ (np.abs(self.capacity_mat[e[0], e[1]] - self.link_flows[e[0], e[1]]) ** 2 + 0.01)
+			self.link_prices_y[e[0], e[1]] -= STEP_SIZE * (self.capacity_mat[e[0], e[1]] - self.link_flows[e[0], e[1]]) #\
+											# / (np.abs(self.capacity_mat[e[0], e[1]] - self.link_flows[e[0], e[1]]) ** 2 + 0.01)
 			self.link_prices_y[e[0], e[1]] = np.max([0., self.link_prices_y[e[0], e[1]]])
 
-			self.link_prices_y[e[1], e[0]] -= STEP_SIZE * (self.capacity_mat[e[1], e[0]] - self.link_flows[e[1], e[0]]) \
-											/ (np.abs(self.capacity_mat[e[1], e[0]] - self.link_flows[e[1], e[0]]) ** 2 + 0.01)
+			self.link_prices_y[e[1], e[0]] -= STEP_SIZE * (self.capacity_mat[e[1], e[0]] - self.link_flows[e[1], e[0]]) #\
+											# / (np.abs(self.capacity_mat[e[1], e[0]] - self.link_flows[e[1], e[0]]) ** 2 + 0.01)
 			self.link_prices_y[e[1], e[0]] = np.max([0., self.link_prices_y[e[1], e[0]]])
 
-			self.link_prices_z[e[0], e[1]] -= STEP_SIZE * (self.link_flows[e[1], e[0]] - self.link_flows[e[0], e[1]]) \
-											/ (np.abs(self.link_flows[e[1], e[0]] - self.link_flows[e[0], e[1]]) ** 2 + 0.01)
+			self.link_prices_z[e[0], e[1]] -= STEP_SIZE * (self.link_flows[e[1], e[0]] - self.link_flows[e[0], e[1]]) #\
+											# / (np.abs(self.link_flows[e[1], e[0]] - self.link_flows[e[0], e[1]]) ** 2 + 0.01)
 			self.link_prices_z[e[0], e[1]] = np.max([0., self.link_prices_z[e[0], e[1]]])
 
-			self.link_prices_z[e[1], e[0]] -= STEP_SIZE * (self.link_flows[e[0], e[1]] - self.link_flows[e[1], e[0]]) \
-											/ (np.abs(self.link_flows[e[0], e[1]] - self.link_flows[e[1], e[0]]) ** 2 + 0.01)
+			self.link_prices_z[e[1], e[0]] -= STEP_SIZE * (self.link_flows[e[0], e[1]] - self.link_flows[e[1], e[0]]) #\
+											# / (np.abs(self.link_flows[e[0], e[1]] - self.link_flows[e[1], e[0]]) ** 2 + 0.01)
 			self.link_prices_z[e[1], e[0]] = np.max([0., self.link_prices_z[e[1], e[0]]])
 
 			# if (self.capacity_mat[e[0], e[1]] - self.link_flows[e[0], e[1]]) > 0:
@@ -213,6 +234,7 @@ def main():
 	graph = nx.Graph()
 	graph.add_nodes_from([0, 1, 2])
 	graph.add_edges_from([(0, 1), (1, 2)])
+	adj_mat = nx.adjacency_matrix(graph)
 
 	# demand_mat = np.ones([3, 3])
 	demand_mat = np.zeros([3, 3])
@@ -223,7 +245,8 @@ def main():
 	demand_mat = demand_mat/np.sum(demand_mat)
 
 	credit_mat = np.ones([3, 3])
-	delay = .001
+	credit_mat = adj_mat.multiply(credit_mat).todense()
+	delay = 6.
 
 	max_num_paths = 1
 
@@ -249,6 +272,9 @@ def main():
 
 	print primal_values
 	print dual_values
+
+	network.print_prices()
+	network.print_flows()
 
 	np.save('./primal_values.npy', primal_values)	
 	np.save('./dual_values.npy', dual_values)	
