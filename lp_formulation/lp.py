@@ -143,7 +143,7 @@ class global_optimal_flows(object):
         def print_paths_from_lp_solution(self, op_filename):
             """ compute and output paths in json format"""
             lp_paths = self.compute_paths_from_lp_solution()
-            filename = "optimal_paths_" + op_filename 
+            filename = "optimal_paths/opt_" + op_filename 
             with open(filename, 'w') as f:
                 for key, value in lp_paths.items():
                     f.write(str(key) + "\n")
