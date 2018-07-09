@@ -199,13 +199,21 @@ def read_demand_from_file(demand_file, num_nodes):
     return demand_mat
 
 def main():
-        """ demand read from transaction file """
+        
+        """ read credit amount from command line"""
+        if len(sys.argv) == 3:
+            credit_amt = int(sys.argv[2])
+        else:
+            credit_amt = 10
+
+
+        """ construct output name based on demand file and credit"""
         demand_file = None
         op_filename = None
-        if (len(sys.argv) == 2):
+        if (len(sys.argv) >= 2):
                 demand_file = sys.argv[1]
                 base = os.path.basename(demand_file)
-                op_filename = os.path.splitext(base)[0]
+                op_filename = str(credit_amt) + os.path.splitext(base)[0]
                 print op_filename
 
 
@@ -224,8 +232,9 @@ def main():
 	else:
 		print "Error! Graph type invalid."
 
-	credit_mat = np.ones([n, n])*10
-	delay = .001
+
+	credit_mat = np.ones([n, n])*credit_amt
+	delay = .5
 	total_flow_skew_list = [0.] # np.linspace(0, 2, 20)
 	throughput = np.zeros(len(total_flow_skew_list))
 
