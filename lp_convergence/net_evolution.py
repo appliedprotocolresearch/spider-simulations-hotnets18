@@ -280,7 +280,7 @@ def main():
 		network.update_prices()
 		dual_values[0, step] = network.print_dual_value()
 
-		err_l, err_y, err_z, err_x, err_d, err_c, err_b = network.print_complementary_slackness_error()
+		err_l, err_y, err_z, err_x, err_d, err_c, err_b = network.print_errors()
 		cs_err_l[0, step] = err_l
 		cs_err_y[0, step] = err_y
 		cs_err_z[0, step] = err_z
