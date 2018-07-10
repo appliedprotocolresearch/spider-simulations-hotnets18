@@ -257,6 +257,7 @@ def main():
 	Note: this represents directed edge capacity; in constrast lp.py 
 	in ../lp_formulation/ uses undirected edge capacities """ 
 	credit_mat = np.ones([n, n]) * 10
+	credit_mat = credit_mat / 2.
 	credit_mat = adj_mat.multiply(credit_mat).todense()
 	delay = .5
 	max_num_paths = MAX_NUM_PATHS
