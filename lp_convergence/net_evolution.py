@@ -253,7 +253,9 @@ def main():
 	else:
 		print "Error! Source type invalid."			
 
-	""" credits on links, delay and number of paths to consider """
+	""" credits on links, delay and number of paths to consider.
+	Note: this represents directed edge capacity; in constrast lp.py 
+	in ../lp_formulation/ uses undirected edge capacities """ 
 	credit_mat = np.ones([n, n]) * 10
 	credit_mat = adj_mat.multiply(credit_mat).todense()
 	delay = .5
@@ -292,9 +294,9 @@ def main():
 	print primal_values
 	print dual_values
 
-	network.print_link_prices()
-	network.print_flows()
-	network.print_path_prices()
+	# network.print_link_prices()
+	# network.print_flows()
+	# network.print_path_prices()
 
 	""" save logs """
 	np.save('./primal_values.npy', primal_values)	
