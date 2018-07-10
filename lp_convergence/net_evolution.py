@@ -185,27 +185,40 @@ class payment_network(object):
 
 		return total_price
 
-	def print_complementary_slackness_error(self):
-		""" error in CS conditions """
+	def print_errors(self):
+		""" error in complementary slackness (CS) conditions """
 		err_l = 0.
-		for i, j in self.nonzero_demands:
-			err_l += np.abs(self.link_prices_l[i, j] * (self.demand_mat[i, j] - self.total_srcdest_flow[i, j]))
-
 		err_y = 0.
 		err_z = 0.
+		err_x = 0.
+
+		""" error in primal constraints (PC) """
+		err_d = 0.
+		err_c = 0.
+		err_b = 0. 
+
+		""" compute errors """						
+		for i, j in self.nonzero_demands:
+			err_d += np.max([0., self.total_srcdest_flow[i, j] - self.demand_mat[i, j]])
+			err_l += np.abs(self.link_prices_l[i, j] * (self.demand_mat[i, j] - self.total_srcdest_flow[i, j]))
+
 		for e in self.graph.edges():
+			err_c += np.max([0., self.link_flows[e[0], e[1]] - self.capacity_mat[e[0], e[1]]]) 
+			err_c += np.max([0., self.link_flows[e[1], e[0]] - self.capacity_mat[e[1], e[0]]]) 
+			err_b += np.max([0., self.link_flows[e[1], e[0]] - self.link_flows[e[0], e[1]]])
+			err_b += np.max([0., self.link_flows[e[0], e[1]] - self.link_flows[e[1], e[0]]])
+
 			err_y += np.abs(self.link_prices_y[e[0], e[1]] * (self.capacity_mat[e[0], e[1]] - self.link_flows[e[0], e[1]]))
 			err_y += np.abs(self.link_prices_y[e[1], e[0]] * (self.capacity_mat[e[1], e[0]] - self.link_flows[e[1], e[0]]))
 			err_z += np.abs(self.link_prices_z[e[0], e[1]] * (self.link_flows[e[1], e[0]] - self.link_flows[e[0], e[1]]))
 			err_z += np.abs(self.link_prices_z[e[1], e[0]] * (self.link_flows[e[0], e[1]] - self.link_flows[e[1], e[0]]))
 
-		err_x = 0.
 		for i, j in self.nonzero_demands:
 			for idx, path in enumerate(self.paths[i, j]):
 				price = self.compute_path_price(path)
 				err_x += np.abs(self.path_flows[i, j][idx] * (1. - price))
 
-		return err_l, err_y, err_z, err_x
+		return err_l, err_y, err_z, err_x, err_d, err_c, err_b
 
 def main():
 
@@ -240,44 +253,41 @@ def main():
 	else:
 		print "Error! Source type invalid."			
 
-	# graph = nx.Graph()
-	# graph.add_nodes_from([0, 1, 2, 3])
-	# graph.add_edges_from([(0, 1), (1, 2), (2, 3), (0, 3)])
-
-	# demand_mat = np.ones([3, 3])
-	# demand_mat = np.zeros([4, 4])
-	# np.fill_diagonal(demand_mat, 0.0)
-	# demand_mat[0, 1] = 1.
-	# demand_mat[1, 2] = 1.
-	# demand_mat[2, 3] = 1.
-	# demand_mat[3, 0] = 1.
-	# demand_mat = demand_mat/np.sum(demand_mat)
-
+	""" credits on links, delay and number of paths to consider """
 	credit_mat = np.ones([n, n]) * 10
 	credit_mat = adj_mat.multiply(credit_mat).todense()
 	delay = .5
-
 	max_num_paths = MAX_NUM_PATHS
 
+	""" initialize payment network """
 	network = payment_network(graph, demand_mat, credit_mat, delay, max_num_paths)
 
+	""" initialize logs """
 	primal_values = np.zeros([1, NUM_ITERATIONS])
 	dual_values = np.zeros([1, NUM_ITERATIONS])
 	cs_err_l = np.zeros([1, NUM_ITERATIONS])
 	cs_err_y = np.zeros([1, NUM_ITERATIONS])
 	cs_err_z = np.zeros([1, NUM_ITERATIONS])
 	cs_err_x = np.zeros([1, NUM_ITERATIONS])
+	pc_err_d = np.zeros([1, NUM_ITERATIONS])
+	pc_err_c = np.zeros([1, NUM_ITERATIONS])
+	pc_err_b = np.zeros([1, NUM_ITERATIONS])
 
+	""" run distributed algorithm """
 	for step in range(NUM_ITERATIONS):
 		network.update_flows()
 		primal_values[0, step] = network.print_primal_value()
 		network.update_prices()
 		dual_values[0, step] = network.print_dual_value()
-		err_l, err_y, err_z, err_x = network.print_complementary_slackness_error()
+
+		err_l, err_y, err_z, err_x, err_d, err_c, err_b = network.print_complementary_slackness_error()
 		cs_err_l[0, step] = err_l
 		cs_err_y[0, step] = err_y
 		cs_err_z[0, step] = err_z
 		cs_err_x[0, step] = err_x
+		pc_err_d[0, step] = err_d
+		pc_err_c[0, step] = err_c 
+		pc_err_b[0, step] = err_b 
 
 	print primal_values
 	print dual_values
@@ -286,12 +296,16 @@ def main():
 	network.print_flows()
 	network.print_path_prices()
 
+	""" save logs """
 	np.save('./primal_values.npy', primal_values)	
 	np.save('./dual_values.npy', dual_values)	
 	np.save('./cs_err_l.npy', cs_err_l)
 	np.save('./cs_err_y.npy', cs_err_y)
 	np.save('./cs_err_z.npy', cs_err_z)
 	np.save('./cs_err_x.npy', cs_err_x)
+	np.save('./pc_err_d.npy', pc_err_d)
+	np.save('./pc_err_c.npy', pc_err_c)
+	np.save('./pc_err_b.npy', pc_err_b)
 
 if __name__=='__main__':
 	main()
