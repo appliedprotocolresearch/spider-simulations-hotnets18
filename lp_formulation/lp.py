@@ -144,17 +144,17 @@ class global_optimal_flows(object):
 
 		return lp_paths
 
-	def print_paths_from_lp_solution(self, op_filename):
-		""" compute and output paths in json format"""
-		lp_paths = self.compute_paths_from_lp_solution()
-		filename = "optimal_paths/opt_" + op_filename 
-		with open(filename, 'w') as f:
-			for key, value in lp_paths.items():
-				f.write(str(key) + "\n")
-				for v in value:
-					f.write(str(v['path']) +  " " + str(v['weight']) + "\n")
-				f.write("\n")
-		f.close()
+        def print_paths_from_lp_solution(self, op_filename):
+            """ compute and output paths in specific format"""
+            lp_paths = self.compute_paths_from_lp_solution()
+            filename = "optimal_paths/opt_" + op_filename 
+            with open(filename, 'w') as f:
+                for key, value in lp_paths.items():
+                    f.write(str(key) + "\n")
+                    for v in value:
+                        f.write(str(v['path']) +  " " + str(v['weight']) + "\n")
+                    f.write("\n")
+            f.close()
 
 def peel_path(commodity_graph, i, j):
 	path = nx.dijkstra_path(commodity_graph, i, j)
@@ -267,8 +267,13 @@ def main():
 	np.save('./throughput.npy', throughput)	
 	np.save('./total_flow_skew.npy', total_flow_skew_list)
 
-	if op_filename is not None:
-		solver.print_paths_from_lp_solution(op_filename)
+        if op_filename is not None:
+                solver.print_paths_from_lp_solution(op_filename)
+                obj_output_filename = "/home/ubuntu/lightning_routing/speedy/src/optimal_paths/"
+                obj_output_filename += "obj_" + op_filename
+                with open(obj_output_filename) as f:
+                    f.write(str(throughput[0]))
+                f.close()
 
 if __name__=='__main__':
 	main()
