@@ -271,8 +271,8 @@ def main():
                 solver.print_paths_from_lp_solution(op_filename)
                 obj_output_filename = "/home/ubuntu/lightning_routing/speedy/src/optimal_paths/"
                 obj_output_filename += "obj_" + op_filename
-                with open(obj_output_filename) as f:
-                    f.write(str(throughput[0]))
+                f = open(obj_output_filename, "w")
+                f.write(str(throughput[0]))
                 f.close()
 
 if __name__=='__main__':
