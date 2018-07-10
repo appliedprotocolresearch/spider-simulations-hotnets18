@@ -132,6 +132,7 @@ class global_optimal_flows(object):
 			edge_dict = {}
 			for u, v in graph.edges():
 				if self.edgeflowVars[i, j, u, v].X > 0:
+                                        print("some flow is non-zero")
 					edge_dict[u, v] = self.edgeflowVars[i, j, u, v].X
 				else:
 					commodity_graph.remove_edge(u, v)
@@ -150,7 +151,8 @@ class global_optimal_flows(object):
             filename = "optimal_paths/opt_" + op_filename 
             with open(filename, 'w') as f:
                 for key, value in lp_paths.items():
-                    f.write(str(key) + "\n")
+                    f.write(str(key) + " " + str(self.demand_mat[key]) +  "\n")
+                    f.write("Value is " + str(value))
                     for v in value:
                         f.write(str(v['path']) +  " " + str(v['weight']) + "\n")
                     f.write("\n")
@@ -159,6 +161,7 @@ class global_optimal_flows(object):
 def peel_path(commodity_graph, i, j):
 	path = nx.dijkstra_path(commodity_graph, i, j)
 	# path = append_cycles(commodity_graph, 0, path)
+	print ("peeling path")
 
 	weights = [commodity_graph[u][v]['lp_weights'] for u, v in zip(path[:-1], path[1:])]
 	min_weight = np.min(weights)
@@ -191,16 +194,18 @@ def peel_path(commodity_graph, i, j):
 # 		return append_cycles(commodity_graph, index, path)
 
 def read_demand_from_file(demand_file, num_nodes):
-	demand_mat = np.zeros([num_nodes, num_nodes])
-	with open(demand_file) as f:
-		for line in f:
-			parts = line.split(" ")
-			src = int(parts[2])
-			dst = int(parts[3])
-			val = float(parts[1])
-			demand_mat[src, dst] += val
-	print demand_mat
-	return demand_mat
+        demand_mat = np.zeros([num_nodes, num_nodes])
+        count = 0
+        with open(demand_file) as f:
+            for line in f:
+                parts = line.split(" ")
+                src = int(parts[2])
+                dst = int(parts[3])
+                val = float(parts[1])
+                demand_mat[src, dst] += val
+                count += 1
+        print demand_mat
+        return demand_mat, count
 
 def main():
 		
@@ -234,16 +239,12 @@ def main():
 	else:
 		print "Error! Graph type invalid."
 
-	credit_mat = np.ones([n, n])*credit_amt
-	delay = .5
-	total_flow_skew_list = [0.] # np.linspace(0, 2, 20)
-	throughput = np.zeros(len(total_flow_skew_list))
+        if demand_file is not None:
+                demand_mat, num_txns  = read_demand_from_file(demand_file, n)
+                demand_mat = demand_mat/np.sum(demand_mat)
+		#demand_mat = demand_mat/(float(num_txns)/1000)
 
-	if demand_file is not None:
-		demand_mat = read_demand_from_file(demand_file, n)
-		demand_mat = demand_mat/np.sum(demand_mat)
-
-	elif SRC_TYPE is 'uniform':
+        elif SRC_TYPE is 'uniform':
 		""" uniform load """
 		demand_mat = np.ones([n, n]) 
 		np.fill_diagonal(demand_mat, 0.0)
@@ -257,16 +258,24 @@ def main():
 		np.fill_diagonal(demand_mat, 0.0)
 		demand_mat = demand_mat/np.sum(demand_mat)
 	else:
-		print "Error! Source type invalid."
+		print "Error! Source type invalid."""
 
-	solver = global_optimal_flows(graph, demand_mat, credit_mat, delay)
+	credit_mat = np.ones([n, n])*credit_amt
+	delay = .5
+	total_flow_skew_list = [0.] # np.linspace(0, 2, 20)
+	throughput = np.zeros(len(total_flow_skew_list))
+       
 
-	for i, total_flow_skew in enumerate(total_flow_skew_list):
-		throughput[i] = solver.compute_lp_solution(total_flow_skew)
+        solver = global_optimal_flows(graph, demand_mat, credit_mat, delay)
 
-	np.save('./throughput.npy', throughput)	
-	np.save('./total_flow_skew.npy', total_flow_skew_list)
+        for i, total_flow_skew in enumerate(total_flow_skew_list):
+                throughput[i] = solver.compute_lp_solution(total_flow_skew)
+                #solver.print_lp_solution()
 
+        np.save('./throughput.npy', throughput)	
+        np.save('./total_flow_skew.npy', total_flow_skew_list)
+
+        op_filename = 'blah'
         if op_filename is not None:
                 solver.print_paths_from_lp_solution(op_filename)
                 obj_output_filename = "/home/ubuntu/lightning_routing/speedy/src/optimal_paths/"
