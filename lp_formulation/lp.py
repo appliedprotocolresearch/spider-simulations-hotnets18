@@ -52,14 +52,18 @@ class global_optimal_flows(object):
 			for u in self.graph.neighbors(i):
 				expr_in += self.edgeflowVars[i, j, u, i]
 				expr_out += self.edgeflowVars[i, j, i, u]
-			self.m.addConstr(expr_out - expr_in == self.nodeflowVars[i, j])
+			# self.m.addConstr(expr_out - expr_in == self.nodeflowVars[i, j])
+			self.m.addConstr(expr_out == self.nodeflowVars[i, j])
+			self.m.addConstr(expr_in == 0.0)
 
 			expr_in = 0.0
 			expr_out = 0.0
 			for u in self.graph.neighbors(j):
 				expr_in += self.edgeflowVars[i, j, u, j]
 				expr_out += self.edgeflowVars[i, j, j, u]
-			self.m.addConstr(expr_in - expr_out == self.nodeflowVars[i, j])
+			# self.m.addConstr(expr_in - expr_out == self.nodeflowVars[i, j])
+			self.m.addConstr(expr_out == self.nodeflowVars[i, j])
+			self.m.addConstr(expr_in == 0.0)
 
 			for v in self.graph.nodes():
 				if v != i and v!= j:
