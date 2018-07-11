@@ -50,28 +50,35 @@ class global_optimal_flows(object):
 		""" capacity constraints due to credits and delay """
 		for u, v in self.graph.edges():
 			expr = 0.0
+			flag = False
 			for i, j in self.nonzero_demands:
 				for idx, path in enumerate(self.paths[i, j]):
 					trail = zip(path[:-1], path[1:])
 					if (u, v) in trail or (v, u) in trail:
 						expr += self.pathflowVars[i, j, idx]
-			self.m.addConstr(expr <= self.credit_mat[u, v] * 1.0/self.delay)
+						flag = True
+			if flag:
+				self.m.addConstr(expr <= self.credit_mat[u, v] * 1.0/self.delay)
 
 		""" flow skew constraints """
 		for u, v in self.graph.edges():
 			expr_right = 0.0
 			expr_left = 0.0
+			flag = False
 			for i, j in self.nonzero_demands:
 				for idx, path in enumerate(self.paths[i, j]):
 					trail = zip(path[:-1], path[1:])
 					if (u, v) in trail:
 						expr_right += self.pathflowVars[i, j, idx]
+						flag = True
 					elif (v, u) in trail:
 						expr_left += self.pathflowVars[i, j, idx]
+						flag = True
 					else:
 						pass
-			self.m.addConstr(expr_right - expr_left <= self.edgeskewVars[u, v])
-			self.m.addConstr(expr_left - expr_right <= self.edgeskewVars[u, v])
+			if flag:
+				self.m.addConstr(expr_right - expr_left <= self.edgeskewVars[u, v])
+				self.m.addConstr(expr_left - expr_right <= self.edgeskewVars[u, v])
 
 		""" update model """
 		self.m.update()
@@ -129,68 +136,68 @@ def read_demand_from_file(demand_file, num_nodes):
 
 def main():
 		
-	# """ read credit amount from command line"""
-	# if len(sys.argv) == 3:
-	# 	credit_amt = int(sys.argv[2])
-	# else:
-	# 	credit_amt = 10
+	""" read credit amount from command line"""
+	if len(sys.argv) == 3:
+		credit_amt = int(sys.argv[2])
+	else:
+		credit_amt = 10
 
-	# """ construct output name based on demand file and credit"""
-	# demand_file = None
-	# op_filename = None
-	# if (len(sys.argv) >= 2):
-	# 	demand_file = sys.argv[1]
-	# 	base = os.path.basename(demand_file)
-	# 	op_filename = str(credit_amt) + os.path.splitext(base)[0]
-	# 	print op_filename
+	""" construct output name based on demand file and credit"""
+	demand_file = None
+	op_filename = None
+	if (len(sys.argv) >= 2):
+		demand_file = sys.argv[1]
+		base = os.path.basename(demand_file)
+		op_filename = str(credit_amt) + os.path.splitext(base)[0]
+		print op_filename
 
-	# if GRAPH_TYPE is 'scale_free':
-	# 	n = GRAPH_SIZE
-	# 	graph = nx.scale_free_graph(n)
-	# 	graph = nx.Graph(graph)
+	if GRAPH_TYPE is 'scale_free':
+		n = GRAPH_SIZE
+		graph = nx.scale_free_graph(n)
+		graph = nx.Graph(graph)
 
-	# elif GRAPH_TYPE is 'isp':
-	# 	nodes, edges = parse.get_graph('../../speedy/data/visualizations/sample_topologies/BtNorthAmerica.gv')
-	# 	graph = nx.Graph()
-	# 	graph.add_nodes_from(nodes)
-	# 	graph.add_edges_from(edges)
-	# 	n = len(graph.nodes())
+	elif GRAPH_TYPE is 'isp':
+		nodes, edges = parse.get_graph('../../speedy/data/visualizations/sample_topologies/BtNorthAmerica.gv')
+		graph = nx.Graph()
+		graph.add_nodes_from(nodes)
+		graph.add_edges_from(edges)
+		n = len(graph.nodes())
 
-	# else:
-	# 	print "Error! Graph type invalid."
+	else:
+		print "Error! Graph type invalid."
 
-	# if demand_file is not None:
-	# 	demand_mat, num_txns  = read_demand_from_file(demand_file, n)
-	# 	demand_mat = demand_mat/np.sum(demand_mat)
-	# #demand_mat = demand_mat/(float(num_txns)/1000)
+	if demand_file is not None:
+		demand_mat, num_txns  = read_demand_from_file(demand_file, n)
+		demand_mat = demand_mat/np.sum(demand_mat)
+		#demand_mat = demand_mat/(float(num_txns)/1000)
 
-	# elif SRC_TYPE is 'uniform':
-	# 	""" uniform load """
-	# 	demand_mat = np.ones([n, n]) 
-	# 	np.fill_diagonal(demand_mat, 0.0)
-	# 	demand_mat = demand_mat/np.sum(demand_mat)		
+	elif SRC_TYPE is 'uniform':
+		""" uniform load """
+		demand_mat = np.ones([n, n]) 
+		np.fill_diagonal(demand_mat, 0.0)
+		demand_mat = demand_mat/np.sum(demand_mat)		
 
-	# elif SRC_TYPE is 'skew':
-	# 	""" skewed load """
-	# 	exp_load = np.exp(np.arange(0, -n, -1) * SKEW_RATE)
-	# 	exp_load = exp_load.reshape([n, 1])
-	# 	demand_mat = exp_load * np.ones([1, n])
-	# 	np.fill_diagonal(demand_mat, 0.0)
-	# 	demand_mat = demand_mat/np.sum(demand_mat)
-	# else:
-	# 	print "Error! Source type invalid."""
+	elif SRC_TYPE is 'skew':
+		""" skewed load """
+		exp_load = np.exp(np.arange(0, -n, -1) * SKEW_RATE)
+		exp_load = exp_load.reshape([n, 1])
+		demand_mat = exp_load * np.ones([1, n])
+		np.fill_diagonal(demand_mat, 0.0)
+		demand_mat = demand_mat/np.sum(demand_mat)
+	else:
+		print "Error! Source type invalid."""
 
-	graph = nx.Graph()
-	graph.add_nodes_from([0, 1, 2])
-	graph.add_edges_from([(0, 1), (1, 2), (0, 2)])
-	n = len(graph.nodes())
-	credit_amt = 1.
-	demand_mat = np.zeros([3, 3])
-	demand_mat[0, 1] = 1.
-	demand_mat[1, 2] = 1.
-	demand_mat[2, 0] = 1.
-	np.fill_diagonal(demand_mat, 0.0)
-	demand_mat = demand_mat/np.sum(demand_mat)			
+	# graph = nx.Graph()
+	# graph.add_nodes_from([0, 1, 2])
+	# graph.add_edges_from([(0, 1), (1, 2), (0, 2)])
+	# n = len(graph.nodes())
+	# credit_amt = 1.
+	# demand_mat = np.zeros([3, 3])
+	# demand_mat[0, 1] = 1.
+	# demand_mat[1, 2] = 1.
+	# demand_mat[2, 0] = 1.
+	# np.fill_diagonal(demand_mat, 0.0)
+	# demand_mat = demand_mat/np.sum(demand_mat)			
 
 
 	credit_mat = np.ones([n, n])*credit_amt
