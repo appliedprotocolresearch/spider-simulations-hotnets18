@@ -11,10 +11,13 @@ GRAPH_TYPE = 'isp'
 SRC_TYPE = 'skew'
 
 """ skew rate: real number > 0 """
-SKEW_RATE = 1.
+SKEW_RATE = .25
 
 """ number of paths to consider """
 MAX_NUM_PATHS = 2
 
 """ amount of credits on edges """
-CREDIT_AMT = 10000.
+CREDIT_AMT = 250.
+
+""" transaction value """
+TXN_VALUE = 1.

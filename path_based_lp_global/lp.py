@@ -117,9 +117,8 @@ class global_optimal_flows(object):
 		for i, j in self.nonzero_demands:
 			print "Demand ", i, j
 			for idx, path in enumerate(self.paths[i, j]):
-				if self.pathflowVars[i, j, idx].X > 1e-6:
-					print "path ", path, ":", self.pathflowVars[i, j, idx].X
-			# print " "
+				print "path ", path, ":", self.pathflowVars[i, j, idx].X
+			print " "
 
 def read_demand_from_file(demand_file, num_nodes):
 		demand_mat = np.zeros([num_nodes, num_nodes])
@@ -174,7 +173,7 @@ def main():
 
 	elif SRC_TYPE is 'uniform':
 		""" uniform load """
-		demand_mat = np.ones([n, n]) * 1./((n-1) ** 2) * 1000
+		demand_mat = np.ones([n, n]) * 1./((n-1) ** 2) * 1000 * TXN_VALUE
 		np.fill_diagonal(demand_mat, 0.0)
 
 	elif SRC_TYPE is 'skew':
@@ -183,7 +182,7 @@ def main():
 		exp_load = exp_load.reshape([n, 1]) / np.sum(exp_load)
 		demand_mat = exp_load * np.ones([1, n])
 		demand_mat = demand_mat * 1./(n-1)
-		demand_mat = demand_mat * 1000
+		demand_mat = demand_mat * 1000 * TXN_VALUE
 		np.fill_diagonal(demand_mat, 0.0)
 
 	else:

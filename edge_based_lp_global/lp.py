@@ -242,7 +242,7 @@ def main():
 
 	elif SRC_TYPE is 'uniform':
 		""" uniform load """
-		demand_mat = np.ones([n, n]) * 1./((n-1) ** 2) * 1000
+		demand_mat = np.ones([n, n]) * 1./((n-1) ** 2) * 1000 * TXN_VALUE
 		np.fill_diagonal(demand_mat, 0.0)	
 
 	elif SRC_TYPE is 'skew':
@@ -251,7 +251,7 @@ def main():
 		exp_load = exp_load.reshape([n, 1]) / np.sum(exp_load)
 		demand_mat = exp_load * np.ones([1, n])
 		demand_mat = demand_mat * 1./(n-1)
-		demand_mat = demand_mat * 1000
+		demand_mat = demand_mat * 1000 * TXN_VALUE
 		np.fill_diagonal(demand_mat, 0.0)
 
 	else:
