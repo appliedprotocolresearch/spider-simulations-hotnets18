@@ -2,7 +2,7 @@ import copy
 import networkx as nx 
 import numpy as np 
 import parse
-import pickle
+import cPickle as pickle 
 import sys, os
 
 from gurobipy import *
@@ -114,11 +114,30 @@ class global_optimal_flows(object):
 
 	def print_lp_solution(self):
 		""" print lp solution """
+		count = 0.
 		for i, j in self.nonzero_demands:
 			print "Demand ", i, j
+			sub_count = 0
 			for idx, path in enumerate(self.paths[i, j]):
+				if self.pathflowVars[i, j, idx].X > 1e-12:
+					sub_count += 1
+				# if sub_count > 1:
 				print "path ", path, ":", self.pathflowVars[i, j, idx].X
-			print " "
+			if sub_count > 1:
+				count += 1
+			# print " "
+		print count
+
+	def draw_flow_graph(self):
+		g = nx.Graph()
+		g.add_nodes_from(range(len(self.graph.nodes())))		
+		for i, j in self.nonzero_demands:
+			for idx, path in enumerate(self.paths[i, j]):
+				if self.pathflowVars[i, j, idx].X > 1e-6:
+					for u, v in zip(path[:-1], path[1:]):
+						g.add_edge(u, v)
+		with open('./path_flow_graph.pkl', 'wb') as output:
+			pickle.dump(g, output, pickle.HIGHEST_PROTOCOL)		
 
 def read_demand_from_file(demand_file, num_nodes):
 		demand_mat = np.zeros([num_nodes, num_nodes])
@@ -160,9 +179,9 @@ def main():
 		nodes, edges = parse.get_graph('../../speedy/data/visualizations/sample_topologies/BtNorthAmerica.gv')
 		graph = nx.Graph()
 		graph.add_nodes_from(nodes)
-		graph.add_edges_from(edges)
+		graph.add_edges_from(edges)		
 		n = len(graph.nodes())
-
+		
 	else:
 		print "Error! Graph type invalid."
 
@@ -173,17 +192,36 @@ def main():
 
 	elif SRC_TYPE is 'uniform':
 		""" uniform load """
-		demand_mat = np.ones([n, n]) * 1./((n-1) ** 2) * 1000 * TXN_VALUE
+		demand_mat = np.ones([n, n])
 		np.fill_diagonal(demand_mat, 0.0)
+		demand_mat = demand_mat / np.sum(demand_mat)
+		demand_mat = demand_mat * 1000 * TXN_VALUE
 
 	elif SRC_TYPE is 'skew':
 		""" skewed load """
 		exp_load = np.exp(np.arange(0, -n, -1) * SKEW_RATE)
-		exp_load = exp_load.reshape([n, 1]) / np.sum(exp_load)
+		exp_load = exp_load.reshape([n, 1])
 		demand_mat = exp_load * np.ones([1, n])
-		demand_mat = demand_mat * 1./(n-1)
-		demand_mat = demand_mat * 1000 * TXN_VALUE
 		np.fill_diagonal(demand_mat, 0.0)
+		demand_mat = demand_mat / np.sum(demand_mat)
+		demand_mat = demand_mat * 1000 * TXN_VALUE
+
+	elif SRC_TYPE is 'random_skew':
+		""" skewed load """
+		exp_load = np.exp(np.random.permutation(np.arange(0, -n, -1)) * SKEW_RATE)
+		exp_load = exp_load.reshape([n, 1])
+		demand_mat = exp_load * np.ones([1, n])
+		np.fill_diagonal(demand_mat, 0.0)
+		demand_mat = demand_mat / np.sum(demand_mat)
+		demand_mat = demand_mat * 1000 * TXN_VALUE
+
+	elif SRC_TYPE is 'random':
+		""" random load """
+		np.random.seed(12)
+		demand_mat = np.random.rand(n, n)
+		np.fill_diagonal(demand_mat, 0.0)
+		demand_mat = demand_mat / np.sum(demand_mat)
+		demand_mat = demand_mat * 1000 * TXN_VALUE
 
 	else:
 		print "Error! Source type invalid."""
@@ -199,6 +237,7 @@ def main():
 		throughput[i] = solver.compute_lp_solution(total_flow_skew)
 		solver.print_lp_solution()
 
+	solver.draw_flow_graph()
 	print throughput/np.sum(demand_mat)
 
 	np.save('./throughput.npy', throughput)	

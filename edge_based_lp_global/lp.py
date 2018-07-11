@@ -242,17 +242,36 @@ def main():
 
 	elif SRC_TYPE is 'uniform':
 		""" uniform load """
-		demand_mat = np.ones([n, n]) * 1./((n-1) ** 2) * 1000 * TXN_VALUE
-		np.fill_diagonal(demand_mat, 0.0)	
+		demand_mat = np.ones([n, n])
+		np.fill_diagonal(demand_mat, 0.0)
+		demand_mat = demand_mat / np.sum(demand_mat)
+		demand_mat = demand_mat * 1000 * TXN_VALUE
 
 	elif SRC_TYPE is 'skew':
 		""" skewed load """
 		exp_load = np.exp(np.arange(0, -n, -1) * SKEW_RATE)
-		exp_load = exp_load.reshape([n, 1]) / np.sum(exp_load)
+		exp_load = exp_load.reshape([n, 1])
 		demand_mat = exp_load * np.ones([1, n])
-		demand_mat = demand_mat * 1./(n-1)
-		demand_mat = demand_mat * 1000 * TXN_VALUE
 		np.fill_diagonal(demand_mat, 0.0)
+		demand_mat = demand_mat / np.sum(demand_mat)
+		demand_mat = demand_mat * 1000 * TXN_VALUE
+
+	elif SRC_TYPE is 'random_skew':
+		""" skewed load """
+		exp_load = np.exp(np.random.permutation(np.arange(0, -n, -1)) * SKEW_RATE)
+		exp_load = exp_load.reshape([n, 1])
+		demand_mat = exp_load * np.ones([1, n])
+		np.fill_diagonal(demand_mat, 0.0)
+		demand_mat = demand_mat / np.sum(demand_mat)
+		demand_mat = demand_mat * 1000 * TXN_VALUE
+
+	elif SRC_TYPE is 'random':
+		""" random load """
+		np.random.seed(12)
+		demand_mat = np.random.rand(n, n)
+		np.fill_diagonal(demand_mat, 0.0)
+		demand_mat = demand_mat / np.sum(demand_mat)
+		demand_mat = demand_mat * 1000 * TXN_VALUE			
 
 	else:
 		print "Error! Source type invalid."""
