@@ -238,7 +238,7 @@ def main():
 	if demand_file is not None:
 		demand_mat, num_txns  = read_demand_from_file(demand_file, n)
 		demand_mat = demand_mat/np.sum(demand_mat)
-	#demand_mat = demand_mat/(float(num_txns)/1000)
+	        #demand_mat = demand_mat/(float(num_txns)/1000)
 
 	elif SRC_TYPE is 'uniform':
 		""" uniform load """
@@ -292,14 +292,13 @@ def main():
 	np.save('./throughput.npy', throughput)	
 	np.save('./total_flow_skew.npy', total_flow_skew_list)
 
-	# op_filename = 'blah'
-	# if op_filename is not None:
-	# 	solver.print_paths_from_lp_solution(op_filename)
-	# 	obj_output_filename = "/home/ubuntu/lightning_routing/speedy/src/optimal_paths/"
-	# 	obj_output_filename += "obj_" + op_filename
-	# 	f = open(obj_output_filename, "w")
-	# 	f.write(str(throughput[0]))
-	# 	f.close()
+	if op_filename is not None:
+		solver.print_paths_from_lp_solution(op_filename)
+		obj_output_filename = "/home/ubuntu/lightning_routing/speedy/src/optimal_paths/"
+		obj_output_filename += "obj_" + op_filename
+		f = open(obj_output_filename, "w")
+		f.write(str(throughput[0]))
+		f.close()
 
 if __name__=='__main__':
 	main()
