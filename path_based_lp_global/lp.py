@@ -187,19 +187,6 @@ def main():
 	else:
 		print "Error! Source type invalid."""
 
-	# graph = nx.Graph()
-	# graph.add_nodes_from([0, 1, 2])
-	# graph.add_edges_from([(0, 1), (1, 2), (0, 2)])
-	# n = len(graph.nodes())
-	# credit_amt = 1.
-	# demand_mat = np.zeros([3, 3])
-	# demand_mat[0, 1] = 1.
-	# demand_mat[1, 2] = 1.
-	# demand_mat[2, 0] = 1.
-	# np.fill_diagonal(demand_mat, 0.0)
-	# demand_mat = demand_mat/np.sum(demand_mat)			
-
-
 	credit_mat = np.ones([n, n])*credit_amt
 	delay = .5
 	total_flow_skew_list = [0.] # np.linspace(0, 2, 20)
