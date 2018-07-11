@@ -39,8 +39,8 @@ class global_optimal_flows(object):
 				self.nodeflowVars[i, j] = self.m.addVar(vtype=GRB.CONTINUOUS, lb=0.0, ub=self.demand_mat[i, j])
 			
 			for u, v in self.graph.edges():
-				self.edgeflowVars[i, j, u, v] = self.m.addVar(vtype=GRB.CONTINUOUS, lb=0.0, ub=self.demand_mat[i, j])
-				self.edgeflowVars[i, j, v, u] = self.m.addVar(vtype=GRB.CONTINUOUS, lb=0.0, ub=self.demand_mat[i, j])
+				self.edgeflowVars[i, j, u, v] = self.m.addVar(vtype=GRB.CONTINUOUS, lb=0.0)
+				self.edgeflowVars[i, j, v, u] = self.m.addVar(vtype=GRB.CONTINUOUS, lb=0.0)
 
 		for u, v in self.graph.edges():
 			self.edgeskewVars[u, v] = self.m.addVar(vtype=GRB.CONTINUOUS, lb=0.0)
