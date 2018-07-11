@@ -209,7 +209,7 @@ def main():
 	if len(sys.argv) == 3:
 		credit_amt = int(sys.argv[2])
 	else:
-		credit_amt = 10
+		credit_amt = CREDIT_AMT
 
 	""" construct output name based on demand file and credit"""
 	demand_file = None
@@ -242,17 +242,18 @@ def main():
 
 	elif SRC_TYPE is 'uniform':
 		""" uniform load """
-		demand_mat = np.ones([n, n]) 
-		np.fill_diagonal(demand_mat, 0.0)
-		demand_mat = demand_mat/np.sum(demand_mat)		
+		demand_mat = np.ones([n, n]) * 1./((n-1) ** 2) * 1000
+		np.fill_diagonal(demand_mat, 0.0)	
 
 	elif SRC_TYPE is 'skew':
 		""" skewed load """
 		exp_load = np.exp(np.arange(0, -n, -1) * SKEW_RATE)
-		exp_load = exp_load.reshape([n, 1])
+		exp_load = exp_load.reshape([n, 1]) / np.sum(exp_load)
 		demand_mat = exp_load * np.ones([1, n])
+		demand_mat = demand_mat * 1./(n-1)
+		demand_mat = demand_mat * 1000
 		np.fill_diagonal(demand_mat, 0.0)
-		demand_mat = demand_mat/np.sum(demand_mat)
+
 	else:
 		print "Error! Source type invalid."""
 
@@ -267,7 +268,7 @@ def main():
 		throughput[i] = solver.compute_lp_solution(total_flow_skew)
 		#solver.print_lp_solution()
 
-	print throughput
+	print throughput/np.sum(demand_mat)
 
 	np.save('./throughput.npy', throughput)	
 	np.save('./total_flow_skew.npy', total_flow_skew_list)
