@@ -137,7 +137,18 @@ class global_optimal_flows(object):
 					for u, v in zip(path[:-1], path[1:]):
 						g.add_edge(u, v)
 		with open('./path_flow_graph.pkl', 'wb') as output:
-			pickle.dump(g, output, pickle.HIGHEST_PROTOCOL)		
+			pickle.dump(g, output, pickle.HIGHEST_PROTOCOL)
+
+        def print_paths_from_lp_solution(self, op_filename):
+                """ output paths to file specific format for simulator parsing"""	
+                filename = "optimal_paths/opt_" + op_filename
+                with open(filename, 'w') as f:
+			for i, j in self.nonzero_demands:
+                                f.write(str((i, j)) + " " + str(self.demand_mat[i, j]) +  "\n")
+				for idx, path in enumerate(self.paths[i, j]):
+					f.write(str(path) +  " " + str(self.pathflowVars[i, j, idx].X) + "\n")
+                                f.write("\n")
+                f.close()		
 
 def read_demand_from_file(demand_file, num_nodes):
 		demand_mat = np.zeros([num_nodes, num_nodes])
@@ -239,6 +250,14 @@ def main():
 
 	solver.draw_flow_graph()
 	print throughput/np.sum(demand_mat)
+
+        if op_filename is not None:
+                solver.print_paths_from_lp_solution(op_filename)
+                obj_output_filename = "/home/ubuntu/lightning_routing/speedy/src/optimal_paths/"
+                obj_output_filename += "obj_" + op_filename
+                f = open(obj_output_filename, "w")
+                f.write(str(throughput[0]))
+                f.close()
 
 	np.save('./throughput.npy', throughput)	
 	np.save('./total_flow_skew.npy', total_flow_skew_list)
