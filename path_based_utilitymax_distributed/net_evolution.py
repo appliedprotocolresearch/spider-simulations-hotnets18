@@ -4,6 +4,7 @@ and analyze their convergence behavior """
 import copy
 import networkx as nx 
 import numpy as np 
+import parse
 
 from kshortestpaths import * 
 from utils import *
