@@ -2,13 +2,13 @@
 STEP_SIZE = .001
 
 """ number of iterations """
-NUM_ITERATIONS = 10000
+NUM_ITERATIONS = 100000
 
 """ graph size """
-GRAPH_SIZE = 10
+GRAPH_SIZE = 36
 
 """ graph types: isp, scale_free """
-GRAPH_TYPE = 'scale_free'
+GRAPH_TYPE = 'isp'
 
 """ source types: uniform, skew """
 SRC_TYPE = 'skew'
@@ -17,10 +17,10 @@ SRC_TYPE = 'skew'
 SKEW_RATE = 0.25
 
 """ number of paths to consider """
-MAX_NUM_PATHS = 2
+MAX_NUM_PATHS = 8
 
 """ amount of credits on edges """
-CREDIT_AMT = 6.
+CREDIT_AMT = 250.
 
 """ transaction value """
 TXN_VALUE = 1.
