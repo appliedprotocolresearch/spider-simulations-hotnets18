@@ -287,6 +287,7 @@ def main():
 	np.save('./pc_err_d.npy', pc_err_d)
 	np.save('./pc_err_c.npy', pc_err_c)
 	np.save('./pc_err_b.npy', pc_err_b)
+	np.save('./demand_mat.npy', demand_mat)
 
 if __name__=='__main__':
 	main()
