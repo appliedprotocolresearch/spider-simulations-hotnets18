@@ -1,5 +1,5 @@
 """ step size for gradient descent/ascent """
-STEP_SIZE = .00001
+STEP_SIZE = .001
 
 """ number of iterations """
 NUM_ITERATIONS = 10000

@@ -272,7 +272,7 @@ def main():
 		pc_err_c[0, step] = err_c 
 		pc_err_b[0, step] = err_b 
 
-	print total_flow_values
+	print total_flow_values/np.sum(demand_mat)
 
 	# network.print_link_prices()
 	# network.print_flows()
