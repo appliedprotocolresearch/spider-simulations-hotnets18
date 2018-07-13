@@ -191,8 +191,10 @@ def main():
 	if demand_file is not None:
 		demand_mat, num_txns  = read_demand_from_file(demand_file, n)
 		demand_mat = demand_mat/np.sum(demand_mat)
-		if 'Tr' in demand_file:
-			demand_mat = demand_mat/(float(num_txns)/1000)
+
+                if 'demandMatrix' not in demand_file:
+                    demand_mat = demand_mat/(float(num_txns)/1000)
+
 
 	elif SRC_TYPE is 'uniform':
 		""" uniform load """
@@ -239,7 +241,7 @@ def main():
 
 	for i, total_flow_skew in enumerate(total_flow_skew_list):
 		throughput[i] = solver.compute_lp_solution(total_flow_skew)
-		solver.print_lp_solution()
+		#solver.print_lp_solution()
 
 	# solver.draw_flow_graph()
 	print throughput/np.sum(demand_mat)
