@@ -28,9 +28,9 @@ plt.plot(iterations[0, ::subsample], total_flow_values[0, ::subsample]/np.sum(de
 # plt.plot(iterations[0, ::subsample], cs_err_y[0, ::subsample], '-^', label='cs_err_y')
 # plt.plot(iterations[0, ::subsample], cs_err_z[0, ::subsample], 'D', label='cs_err_z')
 
-# plt.plot(iterations[0, ::subsample], pc_err_d[0, ::subsample], '-+', label='pc_err_d')
-# plt.plot(iterations[0, ::subsample], pc_err_c[0, ::subsample], '-+', label='pc_err_c')
-# plt.plot(iterations[0, ::subsample], pc_err_b[0, ::subsample], '-+', label='pc_err_b')
+# plt.plot(iterations[0, ::subsample], pc_err_d[0, ::subsample]/np.sum(demand_mat), '-+', label='pc_err_d')
+# plt.plot(iterations[0, ::subsample], pc_err_c[0, ::subsample]/np.sum(demand_mat), '-+', label='pc_err_c')
+# plt.plot(iterations[0, ::subsample], pc_err_b[0, ::subsample]/np.sum(demand_mat), '-+', label='pc_err_b')
 
 plt.legend()
 plt.show()
