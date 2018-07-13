@@ -124,11 +124,10 @@ class global_optimal_flows(object):
 		g = nx.Graph()
 		g.add_nodes_from(range(len(self.graph.nodes())))		
 		for i, j in self.nonzero_demands:
-			if i == 30:
-				for idx, path in enumerate(self.paths[i, j]):
-					if self.pathflowVars[i, j, idx].X > 1e-6:
-						for u, v in zip(path[:-1], path[1:]):
-							g.add_edge(u, v)
+			for idx, path in enumerate(self.paths[i, j]):
+				if self.pathflowVars[i, j, idx].X > 1e-6:
+					for u, v in zip(path[:-1], path[1:]):
+						g.add_edge(u, v)
 		with open('./path_flow_graph.pkl', 'wb') as output:
 			pickle.dump(g, output, pickle.HIGHEST_PROTOCOL)
 
@@ -192,8 +191,8 @@ def main():
 	if demand_file is not None:
 		demand_mat, num_txns  = read_demand_from_file(demand_file, n)
 		demand_mat = demand_mat/np.sum(demand_mat)
-				if 'Tr' in demand_file:
-					demand_mat = demand_mat/(float(num_txns)/1000)
+		if 'Tr' in demand_file:
+			demand_mat = demand_mat/(float(num_txns)/1000)
 
 	elif SRC_TYPE is 'uniform':
 		""" uniform load """
@@ -242,7 +241,7 @@ def main():
 		throughput[i] = solver.compute_lp_solution(total_flow_skew)
 		solver.print_lp_solution()
 
-	solver.draw_flow_graph()
+	# solver.draw_flow_graph()
 	print throughput/np.sum(demand_mat)
 
 	if op_filename is not None:
