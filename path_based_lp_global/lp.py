@@ -114,41 +114,34 @@ class global_optimal_flows(object):
 
 	def print_lp_solution(self):
 		""" print lp solution """
-		count = 0.
 		for i, j in self.nonzero_demands:
 			print "Demand ", i, j
-			sub_count = 0
 			for idx, path in enumerate(self.paths[i, j]):
-				if self.pathflowVars[i, j, idx].X > 1e-12:
-					sub_count += 1
-				# if sub_count > 1:
 				print "path ", path, ":", self.pathflowVars[i, j, idx].X
-			if sub_count > 1:
-				count += 1
-			# print " "
-		print count
+			print " "
 
 	def draw_flow_graph(self):
 		g = nx.Graph()
 		g.add_nodes_from(range(len(self.graph.nodes())))		
 		for i, j in self.nonzero_demands:
-			for idx, path in enumerate(self.paths[i, j]):
-				if self.pathflowVars[i, j, idx].X > 1e-6:
-					for u, v in zip(path[:-1], path[1:]):
-						g.add_edge(u, v)
+			if i == 30:
+				for idx, path in enumerate(self.paths[i, j]):
+					if self.pathflowVars[i, j, idx].X > 1e-6:
+						for u, v in zip(path[:-1], path[1:]):
+							g.add_edge(u, v)
 		with open('./path_flow_graph.pkl', 'wb') as output:
 			pickle.dump(g, output, pickle.HIGHEST_PROTOCOL)
 
-        def print_paths_from_lp_solution(self, op_filename):
-                """ output paths to file specific format for simulator parsing"""	
-                filename = "optimal_paths/opt_" + op_filename
-                with open(filename, 'w') as f:
+	def print_paths_from_lp_solution(self, op_filename):
+		""" output paths to file specific format for simulator parsing"""	
+		filename = "optimal_paths/opt_" + op_filename
+		with open(filename, 'w') as f:
 			for i, j in self.nonzero_demands:
-                                f.write(str((i, j)) + " " + str(self.demand_mat[i, j]) +  "\n")
+				f.write(str((i, j)) + " " + str(self.demand_mat[i, j]) +  "\n")
 				for idx, path in enumerate(self.paths[i, j]):
 					f.write(str(path) +  " " + str(self.pathflowVars[i, j, idx].X) + "\n")
-                                f.write("\n")
-                f.close()		
+				f.write("\n")
+		f.close()		
 
 def read_demand_from_file(demand_file, num_nodes):
 		demand_mat = np.zeros([num_nodes, num_nodes])
@@ -199,8 +192,8 @@ def main():
 	if demand_file is not None:
 		demand_mat, num_txns  = read_demand_from_file(demand_file, n)
 		demand_mat = demand_mat/np.sum(demand_mat)
-                if 'Tr' in demand_file:
-                    demand_mat = demand_mat/(float(num_txns)/1000)
+				if 'Tr' in demand_file:
+					demand_mat = demand_mat/(float(num_txns)/1000)
 
 	elif SRC_TYPE is 'uniform':
 		""" uniform load """
@@ -252,13 +245,13 @@ def main():
 	solver.draw_flow_graph()
 	print throughput/np.sum(demand_mat)
 
-        if op_filename is not None:
-                solver.print_paths_from_lp_solution(op_filename)
-                obj_output_filename = "/home/ubuntu/lightning_routing/speedy/src/optimal_paths/"
-                obj_output_filename += "obj_" + op_filename
-                f = open(obj_output_filename, "a")
-                f.write(str(throughput[0]) + " " + str(np.sum(demand_mat)) + " ")
-                f.close()
+	if op_filename is not None:
+		solver.print_paths_from_lp_solution(op_filename)
+		obj_output_filename = "/home/ubuntu/lightning_routing/speedy/src/optimal_paths/"
+		obj_output_filename += "obj_" + op_filename
+		f = open(obj_output_filename, "a")
+		f.write(str(throughput[0]) + " " + str(np.sum(demand_mat)) + " ")
+		f.close()
 
 	np.save('./throughput.npy', throughput)	
 	np.save('./total_flow_skew.npy', total_flow_skew_list)
