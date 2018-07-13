@@ -27,13 +27,13 @@ class payment_network(object):
 		self.link_prices_z = {}
 
 		for i, j in self.nonzero_demands:
-			self.link_prices_l[i, j] = 1.
+			self.link_prices_l[i, j] = INIT_PRICE
 
 		for e in self.graph.edges():
-			self.link_prices_y[e[0], e[1]] = 1.
-			self.link_prices_y[e[1], e[0]] = 1.
-			self.link_prices_z[e[0], e[1]] = 1.
-			self.link_prices_z[e[1], e[0]] = 1.			
+			self.link_prices_y[e[0], e[1]] = INIT_PRICE
+			self.link_prices_y[e[1], e[0]] = INIT_PRICE
+			self.link_prices_z[e[0], e[1]] = INIT_PRICE
+			self.link_prices_z[e[1], e[0]] = INIT_PRICE			
 
 		""" initalize flows on paths """
 		self.total_srcdest_flow = {}
@@ -97,7 +97,7 @@ class payment_network(object):
 					if min_price > 0:
 						self.path_flows[i, j][idx] = 1. / min_price
 					else:
-						self.path_flows[i, j][idx] = 1e3
+						self.path_flows[i, j][idx] = 1e5
 				else:
 					self.path_flows[i, j][idx] = 0.
 

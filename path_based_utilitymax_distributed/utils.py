@@ -24,3 +24,6 @@ CREDIT_AMT = 250.
 
 """ transaction value """
 TXN_VALUE = 1.
+
+""" initial link prices """
+INIT_PRICE = 100.
