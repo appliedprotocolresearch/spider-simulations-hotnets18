@@ -257,7 +257,7 @@ def main():
                 obj_output_filename = "/home/ubuntu/lightning_routing/speedy/src/optimal_paths/"
                 obj_output_filename += "obj_" + op_filename
                 f = open(obj_output_filename, "a")
-                f.write(str(throughput[0]) + " " + np.sum(demand_mat) + " "))
+                f.write(str(throughput[0]) + " " + str(np.sum(demand_mat)) + " ")
                 f.close()
 
 	np.save('./throughput.npy', throughput)	
