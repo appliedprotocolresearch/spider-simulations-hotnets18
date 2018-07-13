@@ -199,7 +199,8 @@ def main():
 	if demand_file is not None:
 		demand_mat, num_txns  = read_demand_from_file(demand_file, n)
 		demand_mat = demand_mat/np.sum(demand_mat)
-		#demand_mat = demand_mat/(float(num_txns)/1000)
+                if 'Tr' in demand_file:
+                    demand_mat = demand_mat/(float(num_txns)/1000)
 
 	elif SRC_TYPE is 'uniform':
 		""" uniform load """
@@ -255,8 +256,8 @@ def main():
                 solver.print_paths_from_lp_solution(op_filename)
                 obj_output_filename = "/home/ubuntu/lightning_routing/speedy/src/optimal_paths/"
                 obj_output_filename += "obj_" + op_filename
-                f = open(obj_output_filename, "w")
-                f.write(str(throughput[0]))
+                f = open(obj_output_filename, "a")
+                f.write(str(throughput[0]) + " " + np.sum(demand_mat) + " "))
                 f.close()
 
 	np.save('./throughput.npy', throughput)	
