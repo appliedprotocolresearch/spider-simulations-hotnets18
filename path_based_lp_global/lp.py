@@ -142,20 +142,6 @@ class global_optimal_flows(object):
 				f.write("\n")
 		f.close()		
 
-def read_demand_from_file(demand_file, num_nodes):
-		demand_mat = np.zeros([num_nodes, num_nodes])
-		count = 0
-		with open(demand_file) as f:
-			for line in f:
-				parts = line.split(" ")
-				src = int(parts[2])
-				dst = int(parts[3])
-				val = float(parts[1])
-				demand_mat[src, dst] += val
-				count += 1
-		print demand_mat
-		return demand_mat, count
-
 def main():
 		
 	""" read credit amount from command line"""
@@ -173,6 +159,7 @@ def main():
 		op_filename = str(credit_amt) + os.path.splitext(base)[0]
 		print op_filename
 
+	""" construct graph """
 	if GRAPH_TYPE is 'scale_free':
 		n = GRAPH_SIZE
 		graph = nx.scale_free_graph(n)
@@ -184,17 +171,25 @@ def main():
 		graph.add_nodes_from(nodes)
 		graph.add_edges_from(edges)		
 		n = len(graph.nodes())
+
+	elif GRAPH_TYPE is 'ripple':
+		adjacent, credits = parse.parse_credit_link_graph(RIPPLE_CREDIT_PATH)
+		nodes, edges = parse.convert_adj_dict_to_list(adjacent)
+		graph = nx.Graph()
+		graph.add_nodes_from(nodes)
+		graph.add_edges_from(edges)
+		n = len(graph.nodes())
 		
 	else:
 		print "Error! Graph type invalid."
 
+	""" construct demand matrix """
 	if demand_file is not None:
-		demand_mat, num_txns  = read_demand_from_file(demand_file, n)
+		demand_mat, num_txns  = parse.read_demand_from_file(demand_file, n)
 		demand_mat = demand_mat/np.sum(demand_mat)
 
-                if 'demandMatrix' not in demand_file:
-                    demand_mat = demand_mat/(float(num_txns)/1000)
-
+		if 'demandMatrix' not in demand_file:
+			demand_mat = demand_mat/(float(num_txns)/1000)
 
 	elif SRC_TYPE is 'uniform':
 		""" uniform load """
@@ -212,27 +207,26 @@ def main():
 		demand_mat = demand_mat / np.sum(demand_mat)
 		demand_mat = demand_mat * 1000 * TXN_VALUE
 
-	elif SRC_TYPE is 'random_skew':
-		""" skewed load """
-		exp_load = np.exp(np.random.permutation(np.arange(0, -n, -1)) * SKEW_RATE)
-		exp_load = exp_load.reshape([n, 1])
-		demand_mat = exp_load * np.ones([1, n])
-		np.fill_diagonal(demand_mat, 0.0)
-		demand_mat = demand_mat / np.sum(demand_mat)
-		demand_mat = demand_mat * 1000 * TXN_VALUE
-
-	elif SRC_TYPE is 'random':
-		""" random load """
-		np.random.seed(12)
-		demand_mat = np.random.rand(n, n)
-		np.fill_diagonal(demand_mat, 0.0)
-		demand_mat = demand_mat / np.sum(demand_mat)
-		demand_mat = demand_mat * 1000 * TXN_VALUE
+	elif SRC_TYPE is 'ripple':
+		assert GRAPH_TYPE is 'ripple'
+		demand_mat, _ = parse.read_demand_from_file(RIPPLE_TXN_PATH, n)
+		demand_mat = demand_mat / 200.
 
 	else:
 		print "Error! Source type invalid."""
 
-	credit_mat = np.ones([n, n])*credit_amt
+	""" construct credit matrix """
+	if CREDIT_TYPE is 'uniform':
+		credit_mat = np.ones([n, n])*credit_amt
+
+	elif CREDIT_TYPE is 'ripple':
+		assert GRAPH_TYPE is 'ripple'
+		assert SRC_TYPE is 'ripple'
+		credit_mat = parse.convert_credit_dict_to_mat(credits, n)
+
+	else:
+		print "Error! Credit matrix type invalid."
+
 	delay = .5
 	total_flow_skew_list = [0.] # np.linspace(0, 2, 20)
 	throughput = np.zeros(len(total_flow_skew_list))
