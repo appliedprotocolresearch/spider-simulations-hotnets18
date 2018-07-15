@@ -26,7 +26,7 @@ CREDIT_AMT = 250.
 TXN_VALUE = 1.
 
 """ ripple credit link file """
-RIPPLE_CREDIT_PATH = '../RippleStatic_0.0.graph_CREDIT_LINKS'
+RIPPLE_CREDIT_PATH = '../RippleStaticClean_0.0.graph_CREDIT_LINKS'
 
 """ ripple transaction dataset file """
 RIPPLE_TXN_PATH = '../RippleStaticClean_45000_Tr.txt'

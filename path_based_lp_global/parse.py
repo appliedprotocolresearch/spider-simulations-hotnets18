@@ -88,16 +88,19 @@ def read_demand_from_file(demand_file, num_nodes):
 	return demand_mat, count
 
 if __name__=='__main__':
-	filename = '../RippleStatic_0.0.graph_CREDIT_LINKS'
+	filename = '../RippleStaticClean_0.0.graph_CREDIT_LINKS'
 	adjacent, credits = parse_credit_link_graph(filename)
 
 	nodes, edges = convert_adj_dict_to_list(adjacent)
+	print len(nodes)
+	print len(edges)
+	exit()
 	n = len(nodes)
 	credit_mat = convert_credit_dict_to_mat(credits, n)
 
 	demand_mat, count = read_demand_from_file('../RippleStaticClean_45000_Tr.txt', n)	
-	print count
-	print np.sum(demand_mat)
+	# print count
+	# print np.sum(demand_mat)
 
 	# data = np.log10(np.array(credits.values()) + 1e-20)
 	# pl.hist(data, 20) # , bins=np.logspace(np.log10(0.1),np.log10(7.0), 20))
