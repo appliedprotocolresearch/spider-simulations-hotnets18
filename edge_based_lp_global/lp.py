@@ -189,20 +189,6 @@ def peel_path(commodity_graph, i, j):
 # 		index += 1
 # 		return append_cycles(commodity_graph, index, path)
 
-def read_demand_from_file(demand_file, num_nodes):
-		demand_mat = np.zeros([num_nodes, num_nodes])
-		count = 0
-		with open(demand_file) as f:
-			for line in f:
-				parts = line.split(" ")
-				src = int(parts[2])
-				dst = int(parts[3])
-				val = float(parts[1])
-				demand_mat[src, dst] += val
-				count += 1
-		print demand_mat
-		return demand_mat, count
-
 def main():
 
 	""" read credit amount from command line"""
