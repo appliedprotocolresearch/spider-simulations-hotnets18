@@ -32,6 +32,10 @@ class global_optimal_flows(object):
 		self.total_skew_constraint = None
 		self.paths = self.preselect_paths(max_num_paths)
 
+		""" save paths """
+		with open('./k_shortest_paths.pkl', 'wb') as output:
+			pickle.dump([self.paths, max_num_paths], output, pickle.HIGHEST_PROTOCOL)
+
 		""" create variables """
 		for i, j in self.nonzero_demands:
 			for idx, path in enumerate(self.paths[i, j]):
