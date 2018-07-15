@@ -4,6 +4,7 @@ import numpy as np
 import parse
 import cPickle as pickle 
 import sys, os
+import time
 
 from gurobipy import *
 from kshortestpaths import * 
@@ -27,10 +28,14 @@ class global_optimal_flows(object):
 		self.m.setParam('OutputFlag', 0)
 		self.m.setParam('TimeLimit', TIME_LIMIT)
 
+		time_var = time.time()
+
 		self.pathflowVars = {}
 		self.edgeskewVars = {}
 		self.total_skew_constraint = None
 		self.paths = self.preselect_paths(max_num_paths)
+
+		print "computed paths in time: ", time.time() - time_var
 
 		""" save paths """
 		with open('./k_shortest_paths.pkl', 'wb') as output:
@@ -44,12 +49,16 @@ class global_optimal_flows(object):
 		for u, v in self.graph.edges():
 			self.edgeskewVars[u, v] = self.m.addVar(vtype=GRB.CONTINUOUS, lb=0.0)
 
+		print "variables created in time: ", time.time() - time_var
+
 		""" flow conservation constraints """
 		for i, j in self.nonzero_demands:
 			expr = 0.0
 			for idx, path in enumerate(self.paths[i, j]):
 				expr += self.pathflowVars[i, j, idx]
 			self.m.addConstr(expr <= self.demand_mat[i, j])
+
+		print "flow conservation constraints: ", time.time() - time_var
 
 		""" capacity constraints due to credits and delay """
 		for u, v in self.graph.edges():
@@ -63,6 +72,8 @@ class global_optimal_flows(object):
 						flag = True
 			if flag:
 				self.m.addConstr(expr <= self.credit_mat[u, v] * 1.0/self.delay)
+
+		print "capacity constraints: ", time.time() - time_var
 
 		""" flow skew constraints """
 		for u, v in self.graph.edges():
@@ -83,6 +94,8 @@ class global_optimal_flows(object):
 			if flag:
 				self.m.addConstr(expr_right - expr_left <= self.edgeskewVars[u, v])
 				self.m.addConstr(expr_left - expr_right <= self.edgeskewVars[u, v])
+
+		print "skew constraints: ", time.time() - time_var
 
 		""" update model """
 		self.m.update()
