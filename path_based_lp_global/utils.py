@@ -30,3 +30,9 @@ RIPPLE_CREDIT_PATH = '../RippleStaticClean_0.0.graph_CREDIT_LINKS'
 
 """ ripple transaction dataset file """
 RIPPLE_TXN_PATH = '../RippleStaticClean_45000_Tr.txt'
+
+""" use saved paths: True, False """
+USE_SAVED_PATHS = True
+
+""" saved paths path """
+SAVED_PATHS_PATH = '../ripple_shortest_paths/4_shortest_paths.pkl'

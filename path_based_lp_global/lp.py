@@ -21,7 +21,7 @@ class global_optimal_flows(object):
 		assert np.shape(self.demand_mat) == (n, n)
 		assert np.shape(self.credit_mat) == (n, n)
 		assert self.delay > 0.0
-                print "demand matrix", np.sum(self.demand_mat)
+		print "demand matrix", np.sum(self.demand_mat)
 
 		self.nonzero_demands = np.transpose(np.nonzero(self.demand_mat))
 
@@ -34,13 +34,16 @@ class global_optimal_flows(object):
 		self.pathflowVars = {}
 		self.edgeskewVars = {}
 		self.total_skew_constraint = None
-		self.paths = self.preselect_paths(max_num_paths)
 
-		print "computed paths in time: ", time.time() - time_var
-
-		""" save paths """
-		with open('./k_shortest_paths.pkl', 'wb') as output:
-			pickle.dump([self.paths, max_num_paths], output, pickle.HIGHEST_PROTOCOL)
+		""" compute paths """
+		if USE_SAVED_PATHS:
+			with open(SAVED_PATHS_PATH, 'rb') as input:
+				[self.paths, _] = pickle.load(input)
+		else:
+			self.paths = self.preselect_paths(max_num_paths)
+			with open('./k_shortest_paths.pkl', 'wb') as output:
+				pickle.dump([self.paths, max_num_paths], output, pickle.HIGHEST_PROTOCOL)
+			print "computed paths in time: ", time.time() - time_var
 
 		""" create variables """
 		for i, j in self.nonzero_demands:
