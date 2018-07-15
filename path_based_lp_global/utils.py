@@ -17,7 +17,7 @@ SKEW_RATE = 0.25
 CREDIT_TYPE = 'ripple'
 
 """ number of paths to consider """
-MAX_NUM_PATHS = 2
+MAX_NUM_PATHS = 4
 
 """ amount of credits on edges """
 CREDIT_AMT = 250.
