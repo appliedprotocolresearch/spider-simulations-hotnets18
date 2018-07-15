@@ -70,6 +70,7 @@ def convert_credit_dict_to_mat(credit_dict, n):
 	# credit_mat = np.zeros([n, n])
 	for u, v in credit_dict.keys():
 		credit_mat[u, v] = credit_dict[(u, v)]
+		credit_mat[v, u] = credit_dict[(u, v)]
 	return credit_mat
 
 def read_demand_from_file(demand_file, num_nodes):
