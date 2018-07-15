@@ -21,6 +21,7 @@ class global_optimal_flows(object):
 		assert np.shape(self.demand_mat) == (n, n)
 		assert np.shape(self.credit_mat) == (n, n)
 		assert self.delay > 0.0
+                print "demand matrix", np.sum(self.demand_mat)
 
 		self.nonzero_demands = np.transpose(np.nonzero(self.demand_mat))
 
