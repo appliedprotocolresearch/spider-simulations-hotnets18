@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.sparse import lil_matrix
 
 # parses a .gv file
 def parse_graph_data(filename):
@@ -65,13 +66,15 @@ def parse_credit_link_graph(filename):
 	return adjacent, credits
 
 def convert_credit_dict_to_mat(credit_dict, n):
-	credit_mat = np.zeros([n, n])
+	credit_mat = lil_matrix((n, n))
+	# credit_mat = np.zeros([n, n])
 	for u, v in credit_dict.keys():
 		credit_mat[u, v] = credit_dict[(u, v)]
 	return credit_mat
 
 def read_demand_from_file(demand_file, num_nodes):
-	demand_mat = np.zeros([num_nodes, num_nodes])
+	demand_mat = lil_matrix((num_nodes, num_nodes))
+	# demand_mat = np.zeros([num_nodes, num_nodes])
 	count = 0
 	with open(demand_file) as f:
 		for line in f:
