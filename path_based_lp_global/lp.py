@@ -199,6 +199,7 @@ def main():
 		graph = nx.Graph()
 		graph.add_nodes_from(nodes)
 		graph.add_edges_from(edges)
+                credit_amt = 0
                 op_filename = "0RippleStaticClean_45000_Tr" if op_filename is None else op_filename	
                 n = len(graph.nodes())
 		
@@ -232,7 +233,7 @@ def main():
 	elif SRC_TYPE is 'ripple':
 		assert GRAPH_TYPE is 'ripple'
 		demand_mat, _ = parse.read_demand_from_file(RIPPLE_TXN_PATH, n)
-		demand_mat = demand_mat / 200.
+		demand_mat = demand_mat / 45.
 
 	else:
 		print "Error! Source type invalid."""
