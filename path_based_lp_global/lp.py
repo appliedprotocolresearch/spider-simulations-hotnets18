@@ -184,7 +184,7 @@ def main():
 	if (len(sys.argv) >= 2):
 		demand_file = sys.argv[1]
 		base = os.path.basename(demand_file)
-                op_filename = str(credit_amt) + os.path.splitext(base)[0]
+				op_filename = str(credit_amt) + os.path.splitext(base)[0]
 		print op_filename
 
 	""" construct graph """
@@ -206,9 +206,9 @@ def main():
 		graph = nx.Graph()
 		graph.add_nodes_from(nodes)
 		graph.add_edges_from(edges)
-                credit_amt = 0
-                op_filename = "0RippleStaticClean_45000_Tr" if op_filename is None else op_filename	
-                n = len(graph.nodes())
+		credit_amt = 0
+		op_filename = "0RippleStaticClean_45000_Tr" if op_filename is None else op_filename	
+		n = len(graph.nodes())
 		
 	else:
 		print "Error! Graph type invalid."
@@ -216,7 +216,6 @@ def main():
 	""" construct demand matrix """
 	if demand_file is not None:
 		demand_mat, num_txns  = parse.read_demand_from_file(demand_file, n)
-		demand_mat = demand_mat/np.sum(demand_mat)
 
 		if 'demandMatrix' not in demand_file:
 			demand_mat = demand_mat/(float(num_txns)/1000)
@@ -253,6 +252,7 @@ def main():
 		assert GRAPH_TYPE is 'ripple'
 		assert SRC_TYPE is 'ripple'
 		credit_mat = parse.convert_credit_dict_to_mat(credits, n)
+		credit_mat[credit_mat > 18000.] = 18000.
 
 	else:
 		print "Error! Credit matrix type invalid."
