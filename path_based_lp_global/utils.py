@@ -19,6 +19,9 @@ CREDIT_TYPE = 'ripple'
 """ number of paths to consider """
 MAX_NUM_PATHS = 4
 
+""" type of path: ksp, ksp_edge_disjoint, kwp_edge_disjoint """
+PATH_TYPE = 'ksp_edge_disjoint'
+
 """ amount of credits on edges """
 CREDIT_AMT = 250.
 

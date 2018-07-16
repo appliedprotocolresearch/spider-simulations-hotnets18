@@ -109,7 +109,12 @@ class global_optimal_flows(object):
 		destination pair of nodes """ 
 		paths = {}
 		for i, j in self.nonzero_demands:
-			paths[i, j] = ksp_yen(self.graph, i, j, max_num_paths)
+			if PATH_TYPE is 'ksp':
+				paths[i, j] = ksp_yen(self.graph, i, j, max_num_paths)
+			elif PATH_TYPE is 'ksp_edge_disjoint':
+				paths[i, j] = ksp_edge_disjoint(self.graph, i, j, max_num_paths)
+			else:
+				print "Error! Path type not found."
 		return paths
 
 	def compute_lp_solution(self, total_flow_skew):
