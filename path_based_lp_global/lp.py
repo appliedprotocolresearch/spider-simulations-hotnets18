@@ -11,7 +11,7 @@ from kshortestpaths import *
 from utils import *
 
 class global_optimal_flows(object):
-	def __init__(self, graph, demand_mat, credit_mat, delay, max_num_paths):
+	def __init__(self, graph, demand_mat, credit_mat, delay, max_num_paths, graph_type):
 		self.graph = copy.deepcopy(graph)
 		self.demand_mat = demand_mat
 		self.credit_mat = credit_mat
@@ -36,7 +36,7 @@ class global_optimal_flows(object):
 		self.total_skew_constraint = None
 
 		""" compute paths """
-		if USE_SAVED_PATHS:
+		if graph_type == 'ripple' and USE_SAVED_PATHS:
 			with open(SAVED_PATHS_PATH, 'rb') as input:
 				[self.paths, _] = pickle.load(input)
 		else:
@@ -254,7 +254,7 @@ def main():
 	total_flow_skew_list = [0.] # np.linspace(0, 2, 20)
 	throughput = np.zeros(len(total_flow_skew_list))
 	   
-	solver = global_optimal_flows(graph, demand_mat, credit_mat, delay, MAX_NUM_PATHS)
+	solver = global_optimal_flows(graph, demand_mat, credit_mat, delay, MAX_NUM_PATHS, graph_type)
 
 	for i, total_flow_skew in enumerate(total_flow_skew_list):
 		throughput[i] = solver.compute_lp_solution(total_flow_skew)
