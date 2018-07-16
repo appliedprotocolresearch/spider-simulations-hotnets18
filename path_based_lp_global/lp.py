@@ -113,6 +113,8 @@ class global_optimal_flows(object):
 				paths[i, j] = ksp_yen(self.graph, i, j, max_num_paths)
 			elif PATH_TYPE is 'ksp_edge_disjoint':
 				paths[i, j] = ksp_edge_disjoint(self.graph, i, j, max_num_paths)
+			elif PATH_TYPE is 'kwp_edge_disjoint':
+				paths[i, j] = kwp_edge_disjoint(self.graph, i, j, max_num_paths, self.credit_mat, self.delay)
 			else:
 				print "Error! Path type not found."
 		return paths
