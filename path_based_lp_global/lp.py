@@ -259,7 +259,7 @@ def main():
 	total_flow_skew_list = [0.] # np.linspace(0, 2, 20)
 	throughput = np.zeros(len(total_flow_skew_list))
 	   
-	solver = global_optimal_flows(graph, demand_mat, credit_mat, delay, MAX_NUM_PATHS, graph_type)
+	solver = global_optimal_flows(graph, demand_mat, credit_mat, delay, MAX_NUM_PATHS, GRAPH_TYPE)
 
 	for i, total_flow_skew in enumerate(total_flow_skew_list):
 		throughput[i] = solver.compute_lp_solution(total_flow_skew)
