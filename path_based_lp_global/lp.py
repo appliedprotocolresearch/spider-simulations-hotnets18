@@ -239,8 +239,8 @@ def main():
 
 	elif SRC_TYPE is 'ripple':
 		assert GRAPH_TYPE is 'ripple'
-		demand_mat, _ = parse.read_demand_from_file(RIPPLE_TXN_PATH, n)
-		demand_mat = demand_mat / 45.
+		demand_mat, num_txns = parse.read_demand_from_file(RIPPLE_TXN_PATH, n)
+		demand_mat = demand_mat/(float(num_txns)/1000.)
 
 	else:
 		print "Error! Source type invalid."""
