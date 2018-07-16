@@ -184,7 +184,7 @@ def main():
 	if (len(sys.argv) >= 2):
 		demand_file = sys.argv[1]
 		base = os.path.basename(demand_file)
-				op_filename = str(credit_amt) + os.path.splitext(base)[0]
+		op_filename = str(credit_amt) + os.path.splitext(base)[0]
 		print op_filename
 
 	""" construct graph """
