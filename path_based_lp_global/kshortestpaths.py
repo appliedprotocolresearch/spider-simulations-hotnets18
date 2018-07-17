@@ -116,31 +116,39 @@ def kwp_edge_disjoint(graph, node_start, node_end, max_k, credit_mat, delay):
         pathto = {}
         tree_nodes = []
         tree_neighbors = []
+        tree_nodes_membership_indicator = {v: False for v in graph.nodes()}
+        tree_neighbors_membership_indicator = {v: False for v in graph.nodes()}
         
         widthto[node_end] = np.inf
         pathto[node_end] = None
         tree_nodes.append(node_end)
+        tree_nodes_membership_indicator[node_end] = True
         tree_neighbors = graph.neighbors(node_end)
+        for v in graph.neighbors(node_end):
+            tree_neighbors_membership_indicator[v] = True
 
-        while tree_neighbors and (node_start not in tree_nodes):
+        while tree_neighbors and tree_nodes_membership_indicator[node_start] is False:
             x = tree_neighbors.pop(0)
+            tree_neighbors_membership_indicator[x] = False
             
             max_width = 0.
             max_width_neighbor = None            
             for v in graph.neighbors(x):
-                if v in tree_nodes:
+                if tree_nodes_membership_indicator[v] is True:
                     if np.min([widthto[v], capacity_mat[x, v]]) > max_width:
                         max_width = np.min([widthto[v], capacity_mat[x, v]])
                         max_width_neighbor = v
                 else:
-                    if v not in tree_neighbors:
+                    if tree_neighbors_membership_indicator[v] is False:
                         tree_neighbors.append(v)
+                        tree_neighbors_membership_indicator[v] = True
 
             widthto[x] = max_width
             pathto[x] = max_width_neighbor
             tree_nodes.append(x)
+            tree_nodes_membership_indicator[x] = True
 
-        if node_start in tree_nodes:
+        if tree_nodes_membership_indicator[node_start] is True:
             node = node_start
             path = [node]
             while node != node_end:
@@ -159,13 +167,14 @@ def main():
 
     graph = nx.Graph()
     graph.add_nodes_from([0, 1, 2, 3])    
-    graph.add_edges_from([(0, 1), (1, 2), (0, 2), (2, 3)])
+    graph.add_edges_from([(0, 1), (1, 2), (0, 2), (2, 3), (0, 3)])
 
     credit_mat = np.zeros([4, 4])
     credit_mat[0, 1] = 1.
     credit_mat[1, 2] = 3.
     credit_mat[2, 3] = 2.
     credit_mat[0, 2] = 2.
+    credit_mat[0, 3] = 5.
     delay = 1.
 
     print kwp_edge_disjoint(graph, 0, 3, 2, credit_mat, delay)
