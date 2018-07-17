@@ -252,7 +252,7 @@ def main():
 		assert GRAPH_TYPE is 'ripple'
 		assert SRC_TYPE is 'ripple'
 		credit_mat = parse.convert_credit_dict_to_mat(credits, n)
-		credit_mat[credit_mat > 18000.] = 18000.
+		credit_mat[credit_mat > 30000.] = 30000.
 
 	else:
 		print "Error! Credit matrix type invalid."
