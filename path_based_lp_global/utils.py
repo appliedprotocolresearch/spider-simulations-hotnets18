@@ -32,7 +32,7 @@ TXN_VALUE = 1.
 RIPPLE_CREDIT_PATH = '../RippleDynSmallComp_0.0.graph_CREDIT_LINKS'
 
 """ ripple transaction dataset file """
-RIPPLE_TXN_PATH = '../RippleDynSmallComp_75980_Tr.tx'
+RIPPLE_TXN_PATH = '../RippleDynSmallComp_75980_Tr.txt'
 
 """ use saved paths: True, False """
 USE_SAVED_PATHS = False
