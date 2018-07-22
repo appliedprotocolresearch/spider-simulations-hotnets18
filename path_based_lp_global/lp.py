@@ -206,7 +206,9 @@ def main():
 		graph = nx.Graph()
 		graph.add_nodes_from(nodes)
 		graph.add_edges_from(edges)
-		op_filename = "0RippleStaticClean_45000_Tr" if op_filename is None else op_filename	
+
+		op_filename = str(credit_amt) + "RippleStaticClean_45000_Tr" if \
+                        op_filename is None else op_filename	
 		n = len(graph.nodes())
 		
 	else:
