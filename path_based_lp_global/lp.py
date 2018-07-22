@@ -184,7 +184,7 @@ def main():
 	if (len(sys.argv) >= 2):
 		demand_file = sys.argv[1]
 		base = os.path.basename(demand_file)
-		op_filename = str(credit_amt) + os.path.splitext(base)[0]
+		op_filename = str(credit_amt) + os.path.splitext(base)[0] + "_"  + MAX_NUM_PATHS
 		print op_filename
 
 	""" construct graph """
@@ -207,7 +207,7 @@ def main():
 		graph.add_nodes_from(nodes)
 		graph.add_edges_from(edges)
 
-		op_filename = str(credit_amt) + "RippleStaticClean_45000_Tr" if \
+		op_filename = str(credit_amt) + "RippleStaticClean_45000_Tr_" + MAX_NUM_PATHS if \
                         op_filename is None else op_filename	
 		n = len(graph.nodes())
 		
