@@ -36,14 +36,10 @@ class global_optimal_flows(object):
 		self.total_skew_constraint = None
 
 		""" compute paths """
-		if graph_type == 'ripple' and USE_SAVED_PATHS:
-			with open(SAVED_PATHS_PATH, 'rb') as input:
-				[self.paths, _] = pickle.load(input)
-		else:
-			self.paths = self.preselect_paths(max_num_paths)
-			with open('./k_shortest_paths.pkl', 'wb') as output:
-				pickle.dump([self.paths, max_num_paths], output, pickle.HIGHEST_PROTOCOL)
-			print "computed paths in time: ", time.time() - time_var
+		self.paths = self.preselect_paths(max_num_paths)
+		with open('./k_shortest_paths.pkl', 'wb') as output:
+			pickle.dump([self.paths, max_num_paths], output, pickle.HIGHEST_PROTOCOL)
+		print "computed paths in time: ", time.time() - time_var
 
 		""" create variables """
 		for i, j in self.nonzero_demands:
@@ -62,7 +58,7 @@ class global_optimal_flows(object):
 				expr += self.pathflowVars[i, j, idx]
 			self.m.addConstr(expr <= self.demand_mat[i, j])
 
-		print "flow conservation constraints: ", time.time() - time_var
+		print "flow conservation constraints in time: ", time.time() - time_var
 
 		""" capacity constraints due to credits and delay """
 		for u, v in self.graph.edges():
@@ -77,7 +73,7 @@ class global_optimal_flows(object):
 			if flag:
 				self.m.addConstr(expr <= self.credit_mat[u, v] * 1.0/self.delay)
 
-		print "capacity constraints: ", time.time() - time_var
+		print "capacity constraints in time: ", time.time() - time_var
 
 		""" flow skew constraints """
 		for u, v in self.graph.edges():
@@ -99,7 +95,7 @@ class global_optimal_flows(object):
 				self.m.addConstr(expr_right - expr_left <= self.edgeskewVars[u, v])
 				self.m.addConstr(expr_left - expr_right <= self.edgeskewVars[u, v])
 
-		print "skew constraints: ", time.time() - time_var
+		print "skew constraints in time: ", time.time() - time_var
 
 		""" update model """
 		self.m.update()
@@ -172,20 +168,8 @@ class global_optimal_flows(object):
 
 def main():
 		
-	""" read credit amount from command line"""
-	if len(sys.argv) == 3:
-		credit_amt = int(sys.argv[2])
-	else:
-		credit_amt = CREDIT_AMT
-
-	""" construct output name based on demand file and credit"""
-	demand_file = None
-	op_filename = None
-	if (len(sys.argv) >= 2):
-		demand_file = sys.argv[1]
-		base = os.path.basename(demand_file)
-		op_filename = str(credit_amt) + os.path.splitext(base)[0] + "_"  + MAX_NUM_PATHS
-		print op_filename
+	""" read credit amount """
+	credit_amt = CREDIT_AMT
 
 	""" construct graph """
 	if GRAPH_TYPE is 'scale_free':
@@ -199,29 +183,12 @@ def main():
 		graph.add_nodes_from(nodes)
 		graph.add_edges_from(edges)		
 		n = len(graph.nodes())
-
-	elif GRAPH_TYPE is 'ripple':
-		adjacent, credits = parse.parse_credit_link_graph(RIPPLE_CREDIT_PATH)
-		nodes, edges = parse.convert_adj_dict_to_list(adjacent)
-		graph = nx.Graph()
-		graph.add_nodes_from(nodes)
-		graph.add_edges_from(edges)
-
-		op_filename = str(credit_amt) + "RippleStaticClean_45000_Tr_" + MAX_NUM_PATHS if \
-                        op_filename is None else op_filename	
-		n = len(graph.nodes())
 		
 	else:
 		print "Error! Graph type invalid."
 
 	""" construct demand matrix """
-	if demand_file is not None:
-		demand_mat, num_txns  = parse.read_demand_from_file(demand_file, n)
-
-		if 'demandMatrix' not in demand_file:
-			demand_mat = demand_mat/(float(num_txns)/1000)
-
-	elif SRC_TYPE is 'uniform':
+	if SRC_TYPE is 'uniform':
 		""" uniform load """
 		demand_mat = np.ones([n, n])
 		np.fill_diagonal(demand_mat, 0.0)
@@ -237,11 +204,6 @@ def main():
 		demand_mat = demand_mat / np.sum(demand_mat)
 		demand_mat = demand_mat * 1000 * TXN_VALUE
 
-	elif SRC_TYPE is 'ripple':
-		assert GRAPH_TYPE is 'ripple'
-		demand_mat, num_txns = parse.read_demand_from_file(RIPPLE_TXN_PATH, n)
-		demand_mat = demand_mat/(float(num_txns)/1000.)
-
 	else:
 		print "Error! Source type invalid."""
 
@@ -249,16 +211,10 @@ def main():
 	if CREDIT_TYPE is 'uniform':
 		credit_mat = np.ones([n, n])*credit_amt
 
-	elif CREDIT_TYPE is 'ripple':
-		assert GRAPH_TYPE is 'ripple'
-		assert SRC_TYPE is 'ripple'
-		credit_mat = parse.convert_credit_dict_to_mat(credits, n)
-		credit_mat[credit_mat > 30000.] = 30000.
-
 	else:
 		print "Error! Credit matrix type invalid."
 
-	delay = .5
+	delay = DELAY
 	total_flow_skew_list = [0.] # np.linspace(0, 2, 20)
 	throughput = np.zeros(len(total_flow_skew_list))
 	   
@@ -270,14 +226,6 @@ def main():
 
 	# solver.draw_flow_graph()
 	print throughput/np.sum(demand_mat)
-
-	if op_filename is not None:
-		solver.print_paths_from_lp_solution(op_filename)
-		obj_output_filename = "/home/ubuntu/lightning_routing/speedy/src/optimal_paths/"
-		obj_output_filename += "obj_" + op_filename
-		f = open(obj_output_filename, "a")
-		f.write(str(throughput[0]) + " " + str(np.sum(demand_mat)) + " ")
-		f.close()
 
 	np.save('./throughput.npy', throughput)	
 	np.save('./total_flow_skew.npy', total_flow_skew_list)
