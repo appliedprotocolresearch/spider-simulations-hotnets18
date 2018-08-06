@@ -1,14 +1,11 @@
-""" gurobi time limit """
-TIME_LIMIT = 3600
-
 """ graph size """
 GRAPH_SIZE = 10
 
-""" graph types: isp, scale_free """
-GRAPH_TYPE = 'scale_free'
+""" graph types: isp, scale_free, test """
+GRAPH_TYPE = 'test'
 
-""" source types: uniform, skew """
-SRC_TYPE = 'uniform'
+""" source types: uniform, skew, test """
+SRC_TYPE = 'test'
 
 """ skew rate: real number > 0 """
 SKEW_RATE = 0.25
@@ -23,13 +20,10 @@ MAX_NUM_PATHS = 4
 PATH_TYPE = 'ksp_edge_disjoint'
 
 """ amount of credits on edges """
-CREDIT_AMT = 250.
+CREDIT_AMT = .5 # 250.
 
 """ transaction value """
-TXN_VALUE = 1.
+TXN_VALUE = 1./1000
 
-""" use saved paths: True, False """
-USE_SAVED_PATHS = False
-
-""" saved paths path """
-SAVED_PATHS_PATH = '../ripple_shortest_paths/4_shortest_paths.pkl'
+""" delay """
+DELAY = 0.5
