@@ -172,7 +172,13 @@ def main():
 	credit_amt = CREDIT_AMT
 
 	""" construct graph """
-	if GRAPH_TYPE is 'scale_free':
+	if GRAPH_TYPE is 'test':
+		graph = nx.Graph()
+		graph.add_nodes_from([0, 1, 2, 3])
+		graph.add_edges_from([(0, 1), (1, 2), (2, 3)])
+		n = len(graph.nodes())
+
+	elif GRAPH_TYPE is 'scale_free':
 		n = GRAPH_SIZE
 		graph = nx.scale_free_graph(n)
 		graph = nx.Graph(graph)
@@ -188,7 +194,17 @@ def main():
 		print "Error! Graph type invalid."
 
 	""" construct demand matrix """
-	if SRC_TYPE is 'uniform':
+	if SRC_TYPE is 'test':
+		""" test load """
+		demand_mat = np.zeros([n, n])
+		demand_mat[0, 1] = 1.
+		demand_mat[1, 0] = 1.
+		demand_mat[1, 3] = 1.
+		demand_mat[3, 1] = 1. 
+		demand_mat = demand_mat / np.sum(demand_mat)
+		demand_mat = demand_mat * 1000 * TXN_VALUE
+
+	elif SRC_TYPE is 'uniform':
 		""" uniform load """
 		demand_mat = np.ones([n, n])
 		np.fill_diagonal(demand_mat, 0.0)
@@ -211,6 +227,10 @@ def main():
 	if CREDIT_TYPE is 'uniform':
 		credit_mat = np.ones([n, n])*credit_amt
 
+	elif CREDIT_TYPE is 'random':
+		credit_mat = np.triu(np.random.rand(n, n), 1) * 2 * credit_amt
+		credit_mat += credit_mat.transpose()
+
 	else:
 		print "Error! Credit matrix type invalid."
 
@@ -222,7 +242,7 @@ def main():
 
 	for i, total_flow_skew in enumerate(total_flow_skew_list):
 		throughput[i] = solver.compute_lp_solution(total_flow_skew)
-		#solver.print_lp_solution()
+		solver.print_lp_solution()
 
 	# solver.draw_flow_graph()
 	print throughput/np.sum(demand_mat)

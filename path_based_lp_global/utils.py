@@ -4,17 +4,17 @@ TIME_LIMIT = 3600
 """ graph size """
 GRAPH_SIZE = 36
 
-""" graph types: isp, scale_free """
+""" graph types: isp, scale_free, test """
 GRAPH_TYPE = 'scale_free'
 
-""" source types: uniform, skew """
+""" source types: uniform, skew, test """
 SRC_TYPE = 'uniform'
 
 """ skew rate: real number > 0 """
 SKEW_RATE = 0.25
 
-""" credit type: uniform """
-CREDIT_TYPE = 'uniform'
+""" credit type: uniform, random """
+CREDIT_TYPE = 'random'
 
 """ number of paths to consider """
 MAX_NUM_PATHS = 4
@@ -23,10 +23,10 @@ MAX_NUM_PATHS = 4
 PATH_TYPE = 'ksp_edge_disjoint'
 
 """ amount of credits on edges """
-CREDIT_AMT = 250.
+CREDIT_AMT = .5/3
 
 """ transaction value """
-TXN_VALUE = 1.
+TXN_VALUE = 1./1000
 
 """ delay """
-DELAY = 0.5
+DELAY = 1.
