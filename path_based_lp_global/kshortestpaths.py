@@ -127,11 +127,11 @@ def kwp_edge_disjoint(graph, node_start, node_end, max_k, credit_mat, delay):
         for v in graph.neighbors(node_end):
             tree_neighbors_membership_indicator[v] = True
 
-        while tree_neighbors and tree_nodes_membership_indicator[node_start] is False:
+        while tree_neighbors and (tree_nodes_membership_indicator[node_start] is False):
             x = tree_neighbors.pop(0)
             tree_neighbors_membership_indicator[x] = False
             
-            max_width = 0.
+            max_width = -1.
             max_width_neighbor = None            
             for v in graph.neighbors(x):
                 if tree_nodes_membership_indicator[v] is True:

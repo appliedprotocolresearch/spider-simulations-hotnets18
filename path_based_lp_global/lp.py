@@ -180,8 +180,9 @@ def main():
 
 	elif GRAPH_TYPE is 'scale_free':
 		n = GRAPH_SIZE
-		graph = nx.scale_free_graph(n)
+		graph = nx.scale_free_graph(n, seed=RAND_SEED)
 		graph = nx.Graph(graph)
+		graph.remove_edges_from(graph.selfloop_edges())
 
 	elif GRAPH_TYPE is 'isp':
 		nodes, edges = parse.get_graph('../../speedy/data/visualizations/sample_topologies/BtNorthAmerica.gv')
@@ -228,6 +229,7 @@ def main():
 		credit_mat = np.ones([n, n])*credit_amt
 
 	elif CREDIT_TYPE is 'random':
+		np.random.seed(RAND_SEED)
 		credit_mat = np.triu(np.random.rand(n, n), 1) * 2 * credit_amt
 		credit_mat += credit_mat.transpose()
 
