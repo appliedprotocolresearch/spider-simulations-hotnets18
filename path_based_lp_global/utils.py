@@ -4,7 +4,7 @@ TIME_LIMIT = 3600
 """ graph size """
 GRAPH_SIZE = 36
 
-""" graph types: isp, scale_free, test """
+""" graph types: isp, scale_free, erdos_renyi, test """
 GRAPH_TYPE = 'scale_free'
 
 """ source types: uniform, skew, test """

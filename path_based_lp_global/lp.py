@@ -184,6 +184,10 @@ def main():
 		graph = nx.Graph(graph)
 		graph.remove_edges_from(graph.selfloop_edges())
 
+	elif GRAPH_TYPE is 'erdos_renyi':
+		n = GRAPH_SIZE
+		graph = nx.fast_gnp_random_graph(n, 0.2, seed=RAND_SEED)
+
 	elif GRAPH_TYPE is 'isp':
 		nodes, edges = parse.get_graph('../../speedy/data/visualizations/sample_topologies/BtNorthAmerica.gv')
 		graph = nx.Graph()
