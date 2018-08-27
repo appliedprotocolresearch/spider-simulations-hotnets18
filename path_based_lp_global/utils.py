@@ -2,25 +2,25 @@
 TIME_LIMIT = 3600
 
 """ graph size """
-GRAPH_SIZE = 36
+GRAPH_SIZE = 30
 
 """ graph types: isp, scale_free, erdos_renyi, test """
 GRAPH_TYPE = 'scale_free'
 
-""" source types: uniform, skew, test """
+""" demand matrix types: uniform, skew, test """
 SRC_TYPE = 'uniform'
 
 """ skew rate: real number > 0 """
 SKEW_RATE = 0.25
 
 """ credit type: uniform, random """
-CREDIT_TYPE = 'random'
+CREDIT_TYPE = 'uniform'
 
 """ number of paths to consider """
-MAX_NUM_PATHS = 1
+MAX_NUM_PATHS = 4
 
-""" type of path: ksp, ksp_edge_disjoint, kwp_edge_disjoint """
-PATH_TYPE = 'kwp_edge_disjoint'
+""" type of path: ksp, ksp_edge_disjoint, kwp_edge_disjoint, raeke """
+PATH_TYPE = 'raeke'
 
 """ amount of credits on edges """
 CREDIT_AMT = 1.0

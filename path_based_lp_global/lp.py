@@ -111,6 +111,8 @@ class global_optimal_flows(object):
 				paths[i, j] = ksp_edge_disjoint(self.graph, i, j, max_num_paths)
 			elif PATH_TYPE is 'kwp_edge_disjoint':
 				paths[i, j] = kwp_edge_disjoint(self.graph, i, j, max_num_paths, self.credit_mat, self.delay)
+			elif PATH_TYPE is 'raeke':
+				paths[i, j] = raeke(i, j)
 			else:
 				print "Error! Path type not found."
 		return paths
@@ -171,6 +173,8 @@ def main():
 	""" read credit amount """
 	credit_amt = CREDIT_AMT
 
+	
+	
 	""" construct graph """
 	if GRAPH_TYPE is 'test':
 		graph = nx.Graph()
@@ -198,6 +202,8 @@ def main():
 	else:
 		print "Error! Graph type invalid."
 
+	
+	
 	""" construct demand matrix """
 	if SRC_TYPE is 'test':
 		""" test load """
@@ -228,6 +234,8 @@ def main():
 	else:
 		print "Error! Source type invalid."""
 
+
+	
 	""" construct credit matrix """
 	if CREDIT_TYPE is 'uniform':
 		credit_mat = np.ones([n, n])*credit_amt
@@ -239,6 +247,8 @@ def main():
 
 	else:
 		print "Error! Credit matrix type invalid."
+
+	
 
 	delay = DELAY
 	total_flow_skew_list = [0.] # np.linspace(0, 2, 20)

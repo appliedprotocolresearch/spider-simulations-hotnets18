@@ -2,6 +2,7 @@
 in a graph using Yen's algorithm: https://en.wikipedia.org/wiki/Yen%27s_algorithm """
 
 import copy 
+import cPickle as pickle 
 import networkx as nx 
 import numpy as np
 
@@ -162,6 +163,12 @@ def kwp_edge_disjoint(graph, node_start, node_end, max_k, credit_mat, delay):
                 graph.remove_edge(i, j)            
 
     return A 
+
+def raeke(node_start, node_end):
+    with open('../oblivious_routing/raeke_0.pkl', 'rb') as input:
+        paths = pickle.load(input)
+
+    return paths[node_start, node_end]
 
 def main():
 
