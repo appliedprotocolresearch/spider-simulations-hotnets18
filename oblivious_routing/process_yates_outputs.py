@@ -24,7 +24,8 @@ def read_paths_file(filename):
 						v = edge.split(',')[1]
 						u = int(u[2:])
 						v = int(v[1:-1])
-						path_list.append((u,v))
+						path_list.append(u)
+					path_list.append(v)
 					if (src, dest) not in paths.keys():
 						paths[src, dest] = []
 					paths[src, dest].append(path_list)
