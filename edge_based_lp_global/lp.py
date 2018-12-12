@@ -191,26 +191,26 @@ def peel_path(commodity_graph, i, j):
 
 def main():
 
-	""" read credit amount from command line"""
-	if len(sys.argv) == 3:
-		credit_amt = int(sys.argv[2])
-	else:
-		credit_amt = CREDIT_AMT
+	""" read credit amount """
+	credit_amt = CREDIT_AMT
 
-	""" construct output name based on demand file and credit"""
-	demand_file = None
-	op_filename = None
-	if (len(sys.argv) >= 2):
-		demand_file = sys.argv[1]
-		base = os.path.basename(demand_file)
-		op_filename = str(credit_amt) + os.path.splitext(base)[0]
-		print op_filename
 
 	""" construct graph """
-	if GRAPH_TYPE is 'scale_free':
+	if GRAPH_TYPE is 'test':
+		graph = nx.Graph()
+		graph.add_nodes_from([0, 1, 2, 3])
+		graph.add_edges_from([(0, 1), (1, 2), (2, 3)])
+		n = len(graph.nodes())
+
+	elif GRAPH_TYPE is 'scale_free':
 		n = GRAPH_SIZE
-		graph = nx.scale_free_graph(n)
+		graph = nx.scale_free_graph(n, seed=RAND_SEED)
 		graph = nx.Graph(graph)
+		graph.remove_edges_from(graph.selfloop_edges())
+
+	elif GRAPH_TYPE is 'erdos_renyi':
+		n = GRAPH_SIZE
+		graph = nx.fast_gnp_random_graph(n, 0.2, seed=RAND_SEED)
 
 	elif GRAPH_TYPE is 'isp':
 		nodes, edges = parse.get_graph('../../speedy/data/visualizations/sample_topologies/BtNorthAmerica.gv')
@@ -218,25 +218,21 @@ def main():
 		graph.add_nodes_from(nodes)
 		graph.add_edges_from(edges)		
 		n = len(graph.nodes())
-
-	elif GRAPH_TYPE is 'ripple':
-		adjacent, credits = parse.parse_credit_link_graph(RIPPLE_CREDIT_PATH)
-		nodes, edges = parse.convert_adj_dict_to_list(adjacent)
-		graph = nx.Graph()
-		graph.add_nodes_from(nodes)
-		graph.add_edges_from(edges)
-		n = len(graph.nodes())
 		
 	else:
 		print "Error! Graph type invalid."
 
-	""" construct demand matrix """
-	if demand_file is not None:
-		demand_mat, num_txns  = parse.read_demand_from_file(demand_file, n)
-		demand_mat = demand_mat/np.sum(demand_mat)
 
-		if 'demandMatrix' not in demand_file:
-			demand_mat = demand_mat/(float(num_txns)/1000)
+	""" construct demand matrix """
+	if SRC_TYPE is 'test':
+		""" test load """
+		demand_mat = np.zeros([n, n])
+		demand_mat[0, 1] = 1.
+		demand_mat[1, 0] = 1.
+		demand_mat[1, 3] = 1.
+		demand_mat[3, 1] = 1. 
+		demand_mat = demand_mat / np.sum(demand_mat)
+		demand_mat = demand_mat * 1000 * TXN_VALUE
 
 	elif SRC_TYPE is 'uniform':
 		""" uniform load """
@@ -254,27 +250,24 @@ def main():
 		demand_mat = demand_mat / np.sum(demand_mat)
 		demand_mat = demand_mat * 1000 * TXN_VALUE
 
-	elif SRC_TYPE is 'ripple':
-		assert GRAPH_TYPE is 'ripple'
-		demand_mat, _ = parse.read_demand_from_file(RIPPLE_TXN_PATH, n)
-		demand_mat = demand_mat / 200.
-
 	else:
 		print "Error! Source type invalid."""
+
 
 	""" construct credit matrix """
 	if CREDIT_TYPE is 'uniform':
 		credit_mat = np.ones([n, n])*credit_amt
 
-	elif CREDIT_TYPE is 'ripple':
-		assert GRAPH_TYPE is 'ripple'
-		assert SRC_TYPE is 'ripple'
-		credit_mat = parse.convert_credit_dict_to_mat(credits, n)
+	elif CREDIT_TYPE is 'random':
+		np.random.seed(RAND_SEED)
+		credit_mat = np.triu(np.random.rand(n, n), 1) * 2 * credit_amt
+		credit_mat += credit_mat.transpose()
 
 	else:
 		print "Error! Credit matrix type invalid."
 
-	delay = .5
+
+	delay = DELAY
 	total_flow_skew_list = [0.] # np.linspace(0, 2, 20)
 	throughput = np.zeros(len(total_flow_skew_list))
 	   
@@ -282,20 +275,12 @@ def main():
 
 	for i, total_flow_skew in enumerate(total_flow_skew_list):
 		throughput[i] = solver.compute_lp_solution(total_flow_skew)
-		#solver.print_lp_solution()
+		solver.print_lp_solution()
 
 	print throughput/np.sum(demand_mat)
 
 	np.save('./throughput.npy', throughput)	
 	np.save('./total_flow_skew.npy', total_flow_skew_list)
-
-	if op_filename is not None:
-		solver.print_paths_from_lp_solution(op_filename)
-		obj_output_filename = "/home/ubuntu/lightning_routing/speedy/src/optimal_paths/"
-		obj_output_filename += "obj_" + op_filename
-		f = open(obj_output_filename, "w")
-		f.write(str(throughput[0]))
-		f.close()
 
 if __name__=='__main__':
 	main()
