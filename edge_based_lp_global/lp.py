@@ -156,7 +156,6 @@ class global_optimal_flows(object):
 
 def peel_path(commodity_graph, i, j):
 	path = nx.dijkstra_path(commodity_graph, i, j)
-	# path = append_cycles(commodity_graph, 0, path)
 	print ("peeling path")
 
 	weights = [commodity_graph[u][v]['lp_weights'] for u, v in zip(path[:-1], path[1:])]
@@ -173,21 +172,6 @@ def peel_path(commodity_graph, i, j):
 	path_dict['weight'] = min_weight
 	return path_dict
 
-# def append_cycles(commodity_graph, index, path):
-# 	if index == len(path):
-# 		return path
-# 	else:
-# 		try:
-# 			cycle = nx.find_cycle(commodity_graph, path[index])
-# 			cycle = list(zip(*cycle)[0])
-# 			if cycle[0] == path[index] and cycle != path[index:]:
-# 				path = path[:index] + cycle + path[index:]
-# 			import pdb
-# 			pdb.set_trace()
-# 		except:
-# 			pass
-# 		index += 1
-# 		return append_cycles(commodity_graph, index, path)
 
 def main():
 

@@ -4,26 +4,26 @@ TIME_LIMIT = 3600
 """ graph size """
 GRAPH_SIZE = 20
 
-""" graph types: isp, scale_free, ripple """
-GRAPH_TYPE = 'ripple'
+""" graph types: isp, scale_free, erdos_renyi, test """
+GRAPH_TYPE = 'scale_free'
 
-""" source types: uniform, skew, ripple """
-SRC_TYPE = 'ripple'
+""" demand matrix types: uniform, skew, test """
+SRC_TYPE = 'uniform'
 
 """ skew rate: real number > 0 """
 SKEW_RATE = 0.25
 
-""" credit type: uniform, ripple """
-CREDIT_TYPE = 'ripple'
+""" credit type: uniform, random """
+CREDIT_TYPE = 'uniform'
 
 """ amount of credits on edges """
-CREDIT_AMT = 250.
+CREDIT_AMT = 1.
 
 """ transaction value """
-TXN_VALUE = 1.
+TXN_VALUE = 1./1000
 
-""" ripple credit link file """
-RIPPLE_CREDIT_PATH = '../RippleStaticClean_0.0.graph_CREDIT_LINKS'
+""" delay """
+DELAY = 1.
 
-""" ripple transaction dataset file """
-RIPPLE_TXN_PATH = '../RippleStaticClean_45000_Tr.txt'
+""" random seed """
+RAND_SEED = 11
