@@ -37,8 +37,6 @@ class global_optimal_flows(object):
 
 		""" compute paths """
 		self.paths = self.preselect_paths(max_num_paths)
-		with open('./k_shortest_paths.pkl', 'wb') as output:
-			pickle.dump([self.paths, max_num_paths], output, pickle.HIGHEST_PROTOCOL)
 		print "computed paths in time: ", time.time() - time_var
 
 		""" create variables """
@@ -173,8 +171,7 @@ def main():
 	""" read credit amount """
 	credit_amt = CREDIT_AMT
 
-	
-	
+		
 	""" construct graph """
 	if GRAPH_TYPE is 'test':
 		graph = nx.Graph()
@@ -202,7 +199,6 @@ def main():
 	else:
 		print "Error! Graph type invalid."
 
-	
 	
 	""" construct demand matrix """
 	if SRC_TYPE is 'test':
@@ -235,7 +231,6 @@ def main():
 		print "Error! Source type invalid."""
 
 
-	
 	""" construct credit matrix """
 	if CREDIT_TYPE is 'uniform':
 		credit_mat = np.ones([n, n])*credit_amt
@@ -248,7 +243,6 @@ def main():
 	else:
 		print "Error! Credit matrix type invalid."
 
-	
 
 	delay = DELAY
 	total_flow_skew_list = [0.] # np.linspace(0, 2, 20)
@@ -258,7 +252,7 @@ def main():
 
 	for i, total_flow_skew in enumerate(total_flow_skew_list):
 		throughput[i] = solver.compute_lp_solution(total_flow_skew)
-		solver.print_lp_solution()
+		# solver.print_lp_solution()
 
 	# solver.draw_flow_graph()
 	print throughput/np.sum(demand_mat)
