@@ -4,6 +4,7 @@ import numpy as np
 import parse
 import pickle
 import sys, os
+import time
 
 from gurobipy import *
 from utils import *
@@ -26,6 +27,8 @@ class global_optimal_flows(object):
 		self.m.setParam('OutputFlag', 0)
 		self.m.setParam('TimeLimit', TIME_LIMIT)
 
+		time_var = time.time()
+
 		self.edgeflowVars = {}
 		self.nodeflowVars = {}
 		self.edgeskewVars = {}
@@ -44,6 +47,8 @@ class global_optimal_flows(object):
 
 		for u, v in self.graph.edges():
 			self.edgeskewVars[u, v] = self.m.addVar(vtype=GRB.CONTINUOUS, lb=0.0)
+
+		print "variables created in time: ", time.time() - time_var
 
 		""" flow conservation constraints """
 		for i, j in self.nonzero_demands:
@@ -70,6 +75,8 @@ class global_optimal_flows(object):
 						expr_out += self.edgeflowVars[i, j, v, u]
 					self.m.addConstr(expr_in == expr_out)
 
+		print "Flow conservation constraints in time: ", time.time() - time_var
+
 		""" flow constraints due to credits and delay """
 		for u, v in self.graph.edges():
 			expr = 0.0
@@ -77,6 +84,8 @@ class global_optimal_flows(object):
 				expr += self.edgeflowVars[i, j, u, v]
 				expr += self.edgeflowVars[i, j, v, u]
 			self.m.addConstr(expr <= self.credit_mat[u, v] * 1.0/self.delay)
+
+		print "Flow constraints due to credits and delay in time: ", time.time() - time_var
 
 		""" flow skew constraints """
 		for u, v in self.graph.edges():
@@ -87,6 +96,8 @@ class global_optimal_flows(object):
 				expr_left += self.edgeflowVars[i, j, v, u]
 			self.m.addConstr(expr_right - expr_left <= self.edgeskewVars[u, v])
 			self.m.addConstr(expr_left - expr_right <= self.edgeskewVars[u, v])
+
+		print "Flow skew constraints in time: ", time.time() - time_var
 
 		""" update model """
 		self.m.update()
@@ -259,7 +270,7 @@ def main():
 
 	for i, total_flow_skew in enumerate(total_flow_skew_list):
 		throughput[i] = solver.compute_lp_solution(total_flow_skew)
-		solver.print_lp_solution()
+		# solver.print_lp_solution()
 
 	print throughput/np.sum(demand_mat)
 
