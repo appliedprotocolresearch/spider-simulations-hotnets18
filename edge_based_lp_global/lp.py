@@ -217,6 +217,8 @@ def main():
 	else:
 		print "Error! Graph type invalid."
 
+	assert nx.is_connected(graph)
+
 
 	""" construct demand matrix """
 	if SRC_TYPE is 'test':
