@@ -43,7 +43,7 @@ def main():
 	args = parser.parse_args()
 
 	n = 100
-	CREDIT_AMT = 1.0
+	CREDIT_AMT = 100.0
 	RAND_SEED = 11
 
 	graph = nx.scale_free_graph(n, seed=RAND_SEED)
@@ -58,6 +58,7 @@ def main():
 		np.random.seed(RAND_SEED)
 		credit_mat = np.triu(np.random.rand(n, n), 1) * 2 * CREDIT_AMT
 		credit_mat += credit_mat.transpose()
+		credit_mat = credit_mat.astype(int)
 
 	else:
 		print "Error! Credit matrix type invalid."
