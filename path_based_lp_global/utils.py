@@ -23,7 +23,7 @@ MAX_NUM_PATHS = 4
 PATH_TYPE = 'raeke'
 
 """ amount of credits on edges """
-CREDIT_AMT = 1.0
+CREDIT_AMT = 100.0
 
 """ transaction value """
 TXN_VALUE = 1./1000

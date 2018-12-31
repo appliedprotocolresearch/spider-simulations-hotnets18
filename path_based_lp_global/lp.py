@@ -239,6 +239,7 @@ def main():
 		np.random.seed(RAND_SEED)
 		credit_mat = np.triu(np.random.rand(n, n), 1) * 2 * credit_amt
 		credit_mat += credit_mat.transpose()
+		credit_mat = credit_mat.astype(int)
 
 	else:
 		print "Error! Credit matrix type invalid."
