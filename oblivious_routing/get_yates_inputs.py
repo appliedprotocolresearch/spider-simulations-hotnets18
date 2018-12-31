@@ -1,4 +1,5 @@
 """ Convert graph topology to .dot file """
+import argparse
 import networkx as nx 
 import numpy as np
 
@@ -36,12 +37,31 @@ def get_node_index(graph):
 			f.write('h' + str(v) + '\n')
 
 def main():
-	n = 30
-	graph = nx.scale_free_graph(n, seed=11)
+
+	parser = argparse.ArgumentParser()
+	parser.add_argument('--credit_type', help='uniform or random credit on links')
+	args = parser.parse_args()
+
+	n = 100
+	CREDIT_AMT = 1.0
+	RAND_SEED = 11
+
+	graph = nx.scale_free_graph(n, seed=RAND_SEED)
 	graph = nx.Graph(graph)
 	graph.remove_edges_from(graph.selfloop_edges())
 
-	credit_mat = np.ones([n, n])
+	""" construct credit matrix """
+	if args.credit_type == 'uniform':
+		credit_mat = np.ones([n, n])*CREDIT_AMT
+
+	elif args.credit_type == 'random':
+		np.random.seed(RAND_SEED)
+		credit_mat = np.triu(np.random.rand(n, n), 1) * 2 * CREDIT_AMT
+		credit_mat += credit_mat.transpose()
+
+	else:
+		print "Error! Credit matrix type invalid."
+
 	demand_mat = np.ones([n, n]) * 1e6
 	np.fill_diagonal(demand_mat, 0.0)
 
