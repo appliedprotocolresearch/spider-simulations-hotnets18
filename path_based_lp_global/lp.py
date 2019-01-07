@@ -185,6 +185,10 @@ def main():
 		graph = nx.Graph(graph)
 		graph.remove_edges_from(graph.selfloop_edges())
 
+	elif GRAPH_TYPE is 'small_world':
+		n = GRAPH_SIZE
+		graph = nx.watts_strogatz_graph(n, k=8, p=0.01, seed=RAND_SEED)
+
 	elif GRAPH_TYPE is 'erdos_renyi':
 		n = GRAPH_SIZE
 		graph = nx.fast_gnp_random_graph(n, 0.2, seed=RAND_SEED)
@@ -198,6 +202,8 @@ def main():
 		
 	else:
 		print "Error! Graph type invalid."
+
+	assert nx.is_connected(graph)
 
 	
 	""" construct demand matrix """

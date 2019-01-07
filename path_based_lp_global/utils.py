@@ -4,7 +4,7 @@ TIME_LIMIT = 3600
 """ graph size """
 GRAPH_SIZE = 30
 
-""" graph types: isp, scale_free, erdos_renyi, test """
+""" graph types: isp, scale_free, small_world, erdos_renyi, test """
 GRAPH_TYPE = 'scale_free'
 
 """ demand matrix types: uniform, skew, test """
@@ -23,7 +23,7 @@ MAX_NUM_PATHS = 4
 PATH_TYPE = 'raeke'
 
 """ amount of credits on edges """
-CREDIT_AMT = 100.0
+CREDIT_AMT = 1.0
 
 """ transaction value """
 TXN_VALUE = 1./1000
