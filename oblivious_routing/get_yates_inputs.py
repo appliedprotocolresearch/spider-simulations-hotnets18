@@ -40,15 +40,26 @@ def main():
 
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--credit_type', help='uniform or random credit on links')
+	parser.add_argument('--graph_type', help='small_world or scale_free graph types')
 	args = parser.parse_args()
 
 	n = 100
 	CREDIT_AMT = 100.0
 	RAND_SEED = 11
 
-	graph = nx.scale_free_graph(n, seed=RAND_SEED)
-	graph = nx.Graph(graph)
-	graph.remove_edges_from(graph.selfloop_edges())
+	""" construct graph """
+	if args.graph_type == 'scale_free':
+		graph = nx.scale_free_graph(n, seed=RAND_SEED)
+		graph = nx.Graph(graph)
+		graph.remove_edges_from(graph.selfloop_edges())
+
+	elif args.graph_type == 'small_world':
+		graph = nx.watts_strogatz_graph(n, k=8, p=0.01, seed=RAND_SEED)
+
+	else:
+		print "Error! Graph type invalid."
+
+	assert nx.is_connected(graph)
 
 	""" construct credit matrix """
 	if args.credit_type == 'uniform':
