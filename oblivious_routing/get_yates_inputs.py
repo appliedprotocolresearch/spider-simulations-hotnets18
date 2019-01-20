@@ -55,6 +55,8 @@ def main():
 
 	elif args.graph_type == 'small_world':
 		graph = nx.watts_strogatz_graph(n, k=8, p=0.01, seed=RAND_SEED)
+		graph = nx.Graph(graph)
+		graph.remove_edges_from(graph.selfloop_edges())
 
 	else:
 		print "Error! Graph type invalid."
