@@ -43,20 +43,40 @@ def main():
 	parser.add_argument('--graph_type', help='small_world or scale_free graph types')
 	args = parser.parse_args()
 
-	n = 100
+	n = 50
 	CREDIT_AMT = 100.0
 	RAND_SEED = 11
 
 	""" construct graph """
 	if args.graph_type == 'scale_free':
-		graph = nx.scale_free_graph(n, seed=RAND_SEED)
+		graph = nx.barabasi_albert_graph(n, 8, seed=23)
 		graph = nx.Graph(graph)
 		graph.remove_edges_from(graph.selfloop_edges())
 
 	elif args.graph_type == 'small_world':
-		graph = nx.watts_strogatz_graph(n, k=8, p=0.01, seed=RAND_SEED)
+		graph = nx.watts_strogatz_graph(n, k=8, p=0.25, seed=23)
 		graph = nx.Graph(graph)
 		graph.remove_edges_from(graph.selfloop_edges())
+
+	elif args.graph_type == 'lnd':
+		graph = nx.read_edgelist("./lnd_dec4_2018_reducedsize.edgelist")
+		rename_dict = {v: int(str(v)) for v in graph.nodes()}
+		graph = nx.relabel_nodes(graph, rename_dict)
+		for e in graph.edges():
+			graph.edges[e]['capacity'] = int(str(graph.edges[e]['capacity']))
+		graph = nx.Graph(graph)
+		graph.remove_edges_from(graph.selfloop_edges())
+		n = nx.number_of_nodes(graph)
+
+	elif args.graph_type == 'sw_50_random_capacity':
+		graph = nx.read_edgelist("./sw_50_random_capacity.edgelist")
+		rename_dict = {v: int(str(v)) for v in graph.nodes()}
+		graph = nx.relabel_nodes(graph, rename_dict)
+		for e in graph.edges():
+			graph.edges[e]['capacity'] = int((graph.edges[e]['capacity']))
+		graph = nx.Graph(graph)
+		graph.remove_edges_from(graph.selfloop_edges())
+		n = nx.number_of_nodes(graph)		
 
 	else:
 		print "Error! Graph type invalid."
@@ -72,6 +92,22 @@ def main():
 		credit_mat = np.triu(np.random.rand(n, n), 1) * 2 * CREDIT_AMT
 		credit_mat += credit_mat.transpose()
 		credit_mat = credit_mat.astype(int)
+
+	elif args.credit_type == 'lnd':
+		credit_mat = np.zeros([n, n])
+		for e in graph.edges():
+			credit_mat[e[0], e[1]] = graph.edges[e]['capacity']/1000
+			credit_mat[e[1], e[0]] = graph.edges[e]['capacity']/1000
+			assert type(graph.edges[e]['capacity']/10000) is int 
+			print graph.edges[e]['capacity']/1000
+
+	elif args.credit_type == 'sw_50_random_capacity':
+		credit_mat = np.zeros([n, n])
+		for e in graph.edges():
+			credit_mat[e[0], e[1]] = graph.edges[e]['capacity'] * 1
+			credit_mat[e[1], e[0]] = graph.edges[e]['capacity'] * 1
+			assert type(graph.edges[e]['capacity']) is int 
+			print graph.edges[e]['capacity'] * 1000
 
 	else:
 		print "Error! Credit matrix type invalid."

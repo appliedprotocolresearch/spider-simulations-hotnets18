@@ -1,6 +1,7 @@
 """ algorithm to compute k shortest paths from given source to destination
 in a graph using Yen's algorithm: https://en.wikipedia.org/wiki/Yen%27s_algorithm """
 
+import argparse
 import copy 
 import cPickle as pickle 
 import networkx as nx 
@@ -98,12 +99,12 @@ def ksp_edge_disjoint(graph, node_start, node_end, max_k=2):
                 
     return A    
 
-def kwp_edge_disjoint(graph, node_start, node_end, max_k, credit_mat, delay):
+def kwp_edge_disjoint(graph, node_start, node_end, max_k, credit_mat):
     """ compute k edge disjoint widest paths """
     """ using http://www.cs.cmu.edu/~avrim/451f08/lectures/lect1007.pdf """
 
     graph = copy.deepcopy(graph)
-    capacity_mat = credit_mat / delay
+    capacity_mat = credit_mat
     A = []
 
     try:
@@ -124,7 +125,7 @@ def kwp_edge_disjoint(graph, node_start, node_end, max_k, credit_mat, delay):
         pathto[node_end] = None
         tree_nodes.append(node_end)
         tree_nodes_membership_indicator[node_end] = True
-        tree_neighbors = graph.neighbors(node_end)
+        tree_neighbors = [v for v in graph.neighbors(node_end)]
         for v in graph.neighbors(node_end):
             tree_neighbors_membership_indicator[v] = True
 
@@ -165,26 +166,119 @@ def kwp_edge_disjoint(graph, node_start, node_end, max_k, credit_mat, delay):
     return A 
 
 def raeke(node_start, node_end):
-    with open('../oblivious_routing/raeke_0.pkl', 'rb') as input:
+    with open('./lnd_oblivious.pkl', 'rb') as input:
         paths = pickle.load(input)
 
-    return paths[node_start, node_end]
+    """ change node index """
+    new_paths = []
+    for path in paths[node_start, node_end]:
+        new_path = [i-102 for i in path[1:-1]]
+        new_paths.append(new_path)
+
+    return new_paths
 
 def main():
 
-    graph = nx.Graph()
-    graph.add_nodes_from([0, 1, 2, 3])    
-    graph.add_edges_from([(0, 1), (1, 2), (0, 2), (2, 3), (0, 3)])
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--credit_type', help='uniform or random or lnd credit on links')
+    parser.add_argument('--graph_type', help='small_world or scale_free or lnd graph types')
+    parser.add_argument('--path_type', help='ksp_yen or ksp_edge_disjoint or kwp_edge_disjoint')
+    args = parser.parse_args()
 
-    credit_mat = np.zeros([4, 4])
-    credit_mat[0, 1] = 1.
-    credit_mat[1, 2] = 3.
-    credit_mat[2, 3] = 2.
-    credit_mat[0, 2] = 2.
-    credit_mat[0, 3] = 5.
-    delay = 1.
+    n = 50
+    CREDIT_AMT = 100.0
+    RAND_SEED = 23
+    delay = 1
 
-    print kwp_edge_disjoint(graph, 0, 3, 2, credit_mat, delay)
+    """ construct graph """
+    if args.graph_type == 'scale_free':
+        graph = nx.barabasi_albert_graph(n, 8, seed=23)
+        graph = nx.Graph(graph)
+        graph.remove_edges_from(graph.selfloop_edges())
+
+    elif args.graph_type == 'small_world':
+        graph = nx.watts_strogatz_graph(n, k=8, p=0.25, seed=23)
+        graph = nx.Graph(graph)
+        graph.remove_edges_from(graph.selfloop_edges())
+
+    elif args.graph_type == 'lnd':
+        graph = nx.read_edgelist("../oblivious_routing/lnd_dec4_2018_reducedsize.edgelist")
+        rename_dict = {v: int(str(v)) for v in graph.nodes()}
+        graph = nx.relabel_nodes(graph, rename_dict)
+        for e in graph.edges():
+            graph.edges[e]['capacity'] = int(str(graph.edges[e]['capacity']))
+        graph = nx.Graph(graph)
+        graph.remove_edges_from(graph.selfloop_edges())
+        n = nx.number_of_nodes(graph)        
+
+    elif args.graph_type == 'sw_50_random_capacity':
+        graph = nx.read_edgelist("../oblivious_routing/sw_50_random_capacity.edgelist")
+        rename_dict = {v: int(str(v)) for v in graph.nodes()}
+        graph = nx.relabel_nodes(graph, rename_dict)
+        for e in graph.edges():
+            graph.edges[e]['capacity'] = int(graph.edges[e]['capacity'])
+        graph = nx.Graph(graph)
+        graph.remove_edges_from(graph.selfloop_edges())
+        n = nx.number_of_nodes(graph)    
+
+    else:
+        print "Error! Graph type invalid."
+
+    assert nx.is_connected(graph)
+
+    """ construct credit matrix """
+    if args.credit_type == 'uniform':
+        credit_mat = np.ones([n, n])*CREDIT_AMT
+
+    elif args.credit_type == 'random':
+        np.random.seed(RAND_SEED)
+        credit_mat = np.triu(np.random.rand(n, n), 1) * 2 * CREDIT_AMT
+        credit_mat += credit_mat.transpose()
+        credit_mat = credit_mat.astype(int)
+
+    elif args.credit_type == 'lnd':
+        credit_mat = np.zeros([n, n])
+        for e in graph.edges():
+            credit_mat[e[0], e[1]] = graph.edges[e]['capacity']/1000
+            credit_mat[e[1], e[0]] = graph.edges[e]['capacity']/1000
+
+    elif args.credit_type == 'sw_50_random_capacity':
+        credit_mat = np.zeros([n, n])
+        for e in graph.edges():
+            credit_mat[e[0], e[1]] = graph.edges[e]['capacity']
+            credit_mat[e[1], e[0]] = graph.edges[e]['capacity']
+
+    else:
+        print "Error! Credit matrix type invalid."
+
+    """ get paths and store in dict """
+    paths = {}
+    for i in range(n):
+        for j in range(n):
+            if i != j:
+                if args.path_type == 'ksp_yen':
+                    ret_paths = ksp_yen(graph, i, j, 4)
+                elif args.path_type == 'ksp_edge_disjoint':
+                    ret_paths = ksp_edge_disjoint(graph, i, j, 4)
+                elif args.path_type == 'kwp_edge_disjoint':
+                    ret_paths = kwp_edge_disjoint(graph, i, j, 4, credit_mat)
+                else:
+                    print "Error! Path type invalid."
+
+                new_paths = []
+                for ret_path in ret_paths: 
+                    new_path = []
+                    new_path.append(i)
+                    new_path = new_path + [u + n for u in ret_path]
+                    new_path.append(j)
+                    new_paths.append(new_path)
+
+                paths[i, j] = new_paths
+
+    print paths
+
+    with open(args.graph_type + '_' + args.path_type + '.pkl', 'wb') as output:
+        pickle.dump(paths, output, pickle.HIGHEST_PROTOCOL)
 
 if __name__=='__main__':
     main()
