@@ -69,13 +69,37 @@ class global_optimal_flows(object):
 			for i, j in self.nonzero_demands:
 				for idx, path in enumerate(self.paths[i, j]):
 					trail = zip(path[:-1], path[1:])
-					if (u, v) in trail or (v, u) in trail:
-						expr += self.pathflowVars[i, j, idx]
-						flag = True
-			if flag:
+
+					if LP_TYPE == 'pathdelta':
+						trail_indices = [trail_idx for trail_idx, (p, q) in enumerate(trail) \
+										if (p, q) == (u, v) or (p, q) == (v, u)]
+						if trail_indices:
+							delay_for_each_index = [2 + len(trail) + 1 + len(trail) - trail_idx for trail_idx in trail_indices]
+							total_delay = sum(delay_for_each_index) * SINGLE_HOP_DELAY
+							expr += self.pathflowVars[i, j, idx]*total_delay
+							flag = True
+
+					elif LP_TYPE == 'maxdelta':
+						trail_indices = [trail_idx for trail_idx, (p, q) in enumerate(trail) \
+										if (p, q) == (u, v) or (p, q) == (v, u)]
+						if trail_indices:
+							total_delay = len(trail_indices)
+							expr += self.pathflowVars[i, j, idx]*total_delay
+							flag = True
+
+					else: 
+						print "LP_TYPE invalid!"
+
+			if LP_TYPE == 'pathdelta' and flag:
+				self.constraints.append(expr <= self.credit_mat[u, v])
+
+			elif LP_TYPE == 'maxdelta' and flag:
 				self.constraints.append(expr <= self.credit_mat[u, v] * 1.0/self.delay)
 
-		print "added capacity constraints in time: ", time.time() - time_var
+			else:
+				pass
+
+		print "capacity constraints in time: ", time.time() - time_var
 
 		""" flow skew constraints """
 		for u, v in self.graph.edges():
@@ -180,9 +204,6 @@ class global_optimal_flows(object):
 		f.close()		
 
 def main():
-		
-	""" read credit amount """
-	credit_amt = CREDIT_AMT
 
 	""" construct graph """
 	if GRAPH_TYPE is 'test':
@@ -191,10 +212,17 @@ def main():
 		graph.add_edges_from([(0, 1), (1, 2), (2, 3)])
 		n = len(graph.nodes())
 
-	elif GRAPH_TYPE is 'scale_free':
+	elif GRAPH_TYPE == 'scale_free':
 		n = GRAPH_SIZE
-		graph = nx.scale_free_graph(n)
+		graph = nx.scale_free_graph(n, seed=RAND_SEED)
 		graph = nx.Graph(graph)
+		graph.remove_edges_from(graph.selfloop_edges())
+
+	elif GRAPH_TYPE == 'small_world':
+		n = GRAPH_SIZE
+		graph = nx.watts_strogatz_graph(n, 8, 0.25, seed=RAND_SEED)
+		graph = nx.Graph(graph) 		
+		graph.remove_edges_from(graph.selfloop_edges())
 
 	elif GRAPH_TYPE is 'isp':
 		nodes, edges = parse.get_graph('../../speedy/data/visualizations/sample_topologies/BtNorthAmerica.gv')
@@ -205,6 +233,7 @@ def main():
 
 	else:
 		print "Error! Graph type invalid."
+
 
 	""" construct demand matrix """
 	if SRC_TYPE is 'test':
@@ -234,17 +263,28 @@ def main():
 		demand_mat = demand_mat / np.sum(demand_mat)
 		demand_mat = demand_mat * 1000 * TXN_VALUE
 
+	elif SRC_TYPE == 'pickle':
+		""" pickle load """
+		with open('./demands/sw_10_routers_circ0_demand3_demand.pkl', 'rb') as input:
+			demand_dict = pickle.load(input)
+		demand_mat = np.zeros([n, n])
+		for (i, j) in demand_dict.keys():
+			demand_mat[i, j] = demand_dict[i, j]
+		demand_mat = demand_mat * 88 * 3
+
 	else:
 		print "Error! Source type invalid."""
 
+
 	""" construct credit matrix """
 	if CREDIT_TYPE is 'uniform':
-		credit_mat = np.ones([n, n])*credit_amt
+		credit_mat = np.ones([n, n]) * 1200
 
 	else:
 		print "Error! Credit matrix type invalid."
 
-	delay = DELAY
+
+	delay = SINGLE_HOP_DELAY
 	total_flow_skew_list = [0.] # np.linspace(0, 200000, 20)
 	throughput = np.zeros(len(total_flow_skew_list))
 	   
